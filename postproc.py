@@ -10,6 +10,7 @@ from PhysicsTools.NanoAODTools.postprocessing.modules.btv.btagSFProducer import 
 from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jecUncertainties import *
 from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetmetUncertainties import *
 from  PhysicsTools.NanoAODTools.postprocessing.modules.jme.mht import *
+from  PhysicsTools.NanoAODTools.postprocessing.examples.puWeightProducer import *
 
 #files=["root://cms-xrd-global.cern.ch//store/user/arizzi/NanoTestProd006/QCD_Pt-80to120_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8/RunIISummer17MiniAOD-92X-NanoCrabProd006/171006_144159/0000/nanolzma_1.root"]
 #files=["lzma_1.root"]
@@ -28,7 +29,7 @@ selection='''(Sum$(Electron_pt > 20 && Electron_mvaSpring16GP_WP90) >= 2  ||
  Sum$(Electron_pt > 20 && Electron_mvaSpring16GP_WP80) >= 1   ||
  Sum$(Muon_pt > 20 && Muon_tightId) >= 1 ||
  (Sum$(Muon_pt > 20) == 0 && Sum$(Electron_pt > 20 && Electron_mvaSpring16GP_WP90) == 0 && MET_pt > 150 ) ) 
- &&  Sum$((abs(Jet_eta)<2.5 && Jet_pt > 20 && Jet_jetId)) >= 2 && Entry$ < 1000 
+ &&  Sum$((abs(Jet_eta)<2.5 && Jet_pt > 20 && Jet_jetId)) >= 2 
 '''
 
 selectionALL='''Sum$(Electron_pt > 20 && Electron_mvaSpring16GP_WP90) >= 2  ||
@@ -46,7 +47,7 @@ MET_pt > 100  || Sum$(Muon_pt > 20 && Muon_tightId) >= 1
 #this takes care of converting the input files from CRAB
 from PhysicsTools.NanoAODTools.postprocessing.framework.crabhelper import inputFiles,runsAndLumis
 
-p=PostProcessor(".",inputFiles(),selection.replace('\n',' '),"keep_and_drop.txt",modules=[jetmetUncertaintiesAll(),btagSFProducer("cmva"),vhbb()],provenance=True,fwkJobReport=True)
+p=PostProcessor(".",inputFiles(),selection.replace('\n',' '),"keep_and_drop.txt",modules=[puWeight(),jetmetUncertaintiesAll(),btagSFProducer("cmva"),vhbb()],provenance=True,fwkJobReport=True)
 #p=PostProcessor(".",inputFiles(),selection.replace('\n',' '),"keep_and_drop.txt",modules=[jetmetUncertaintiesAll(),mht(),btagSFProducer("cmva"),vhbb()],provenance=True,fwkJobReport=True)
 #p=PostProcessor(".",inputFiles(),selection.replace('\n',' '),"keep_and_drop.txt",modules=[jetmetUncertaintiesAll(),btagSFProducer("cmva"),vhbb()],provenance=True,fwkJobReport=True,jsonInput=runsAndLumis())
 p.run()
