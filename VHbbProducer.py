@@ -3,6 +3,7 @@ ROOT.PyConfig.IgnoreCommandLineOptions = True
 
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection,Object
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
+from PhysicsTools.NanoAODTools.postprocessing.tools import * #deltaR, matching etc..
 
 class VHbbProducer(Module):
     def __init__(self):
@@ -25,14 +26,29 @@ class VHbbProducer(Module):
         self.out.branch("H_eta",  "F");
         self.out.branch("H_phi",  "F");
         self.out.branch("H_mass",  "F");
+        self.out.branch("SA_Ht",  "F");
+        self.out.branch("SA5",  "F");
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
+
+    def matchSoftActivity(self,jets,saJets) :
+	matched=set()
+	for saj in saJets:
+	    for j in jets :
+	        if deltaR(saj,j) < 0.4 :
+                    matched.add(saj)
+	return matched
+			
+		    
+	   
+
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
         electrons = Collection(event, "Electron")
         muons = Collection(event, "Muon")
         jets = list(Collection(event, "Jet"))
         met = Object(event, "MET")
+        sa = Collection(event, "SoftActivityJet")
       
         Vtype = -1
 
@@ -123,6 +139,19 @@ class VHbbProducer(Module):
         self.out.fillBranch("H_phi",hbb.Phi())
         self.out.fillBranch("H_eta",hbb.Eta())
         self.out.fillBranch("H_mass",hbb.M())
+
+	## Compute soft activity vetoing Higgs jets
+	#find signal footprint
+	matchedSAJets=self.matchSoftActivity(hJets,sa)
+	# update SA variables 
+
+
+	softActivityJetHT=event.SoftActivityJetHT2-sum([x.pt for x in matchedSAJets])
+        self.out.fillBranch("SA_Ht",softActivityJetHT)
+
+	matchedSAJetsPt5=[x for x in matchedSAJets if x.pt>5]
+        softActivityJetNjets5=event.SoftActivityJetNjets5-len(matchedSAJetsPt5)
+        self.out.fillBranch("SA5",softActivityJetNjets5)
 
         return True
                 
