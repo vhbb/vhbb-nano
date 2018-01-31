@@ -123,7 +123,7 @@ class VHbbProducer(Module):
         self.out.fillBranch("Jet_lepFilter",jetFilterFlags)
 
         ## Add explicit indices for selected H(bb) candidate jets
-        jetsForHiggs = [x for x in jets if x.lepFilter and x.puId>0 and x.jetId>0 and x.pt>20 and abs(x.eta)<2.5]
+        jetsForHiggs = [x for x in jets if x.lepFilter and x.puId>0 and x.jetId>0 and x.pt_smeared>20 and abs(x.eta)<2.5]
         if (len(jetsForHiggs) < 2): return False
         hJets = sorted(jetsForHiggs, key = lambda jet : jet.btagCMVA, reverse=True)[0:2]
         hJidx = [jets.index(x) for x in hJets]
@@ -132,8 +132,8 @@ class VHbbProducer(Module):
         ## Save a few basic reco. H kinematics
         hj1 = ROOT.TLorentzVector()
         hj2 = ROOT.TLorentzVector()
-        hj1.SetPtEtaPhiM(jets[hJidx[0]].pt,jets[hJidx[0]].eta,jets[hJidx[0]].phi,jets[hJidx[0]].mass)
-        hj2.SetPtEtaPhiM(jets[hJidx[1]].pt,jets[hJidx[1]].eta,jets[hJidx[1]].phi,jets[hJidx[1]].mass)
+        hj1.SetPtEtaPhiM(jets[hJidx[0]].pt_smeared,jets[hJidx[0]].eta,jets[hJidx[0]].phi,jets[hJidx[0]].mass)
+        hj2.SetPtEtaPhiM(jets[hJidx[1]].pt_smeared,jets[hJidx[1]].eta,jets[hJidx[1]].phi,jets[hJidx[1]].mass)
         hbb = hj1 + hj2
         self.out.fillBranch("H_pt",hbb.Pt())
         self.out.fillBranch("H_phi",hbb.Phi())
