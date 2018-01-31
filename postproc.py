@@ -38,6 +38,10 @@ selectionALL='''Sum$(Electron_pt > 20 && Electron_mvaSpring16GP_WP90) >= 2  ||
 Sum$(Jet_pt *(abs(Jet_eta)<2.5 && Jet_pt > 20 && Jet_jetId)) > 160  || 
 MET_pt > 100  || Sum$(Muon_pt > 20 && Muon_tightId) >= 1
 '''
+mhtVHbb = lambda : mhtProducer( lambda j : j.pt > 30,
+                            lambda mu : mu.pt > 5 and mu.pfRelIso04_all < 0.4,
+                            lambda el : el.pt > 5 and el.pfRelIso03_all < 0.4 )
+
 #p=PostProcessor(".",files,selection.replace('\n',' '),"keep_and_drop.txt",[jetmetUncertainties(),vhbb()],provenance=True)
 ##p=PostProcessor(".",files,selection.replace('\n',' '),"keep_and_drop.txt",[jetmetUncertaintiesAll(),btagSFProducer("cmva"),vhbb()],provenance=True)
 #p=PostProcessor(".",files,selection.replace('\n',' '),"keep_and_drop.txt",[jecUncertAll_cppOut(),jetmetUncertainties(),btagSFProducer("cmva"),vhbb()],provenance=True)
@@ -47,7 +51,8 @@ MET_pt > 100  || Sum$(Muon_pt > 20 && Muon_tightId) >= 1
 #this takes care of converting the input files from CRAB
 from PhysicsTools.NanoAODTools.postprocessing.framework.crabhelper import inputFiles,runsAndLumis
 
-p=PostProcessor(".",inputFiles(),selection.replace('\n',' '),"keep_and_drop.txt",modules=[puWeight(),jetmetUncertaintiesAll(),btagSFProducer("cmva"),vhbb()],provenance=True,fwkJobReport=True)
+#p=PostProcessor(".",inputFiles(),selection.replace('\n',' '),"keep_and_drop.txt",modules=[puWeight(),jetmetUncertaintiesAll(),btagSFProducer("cmva"),vhbb()],provenance=True,fwkJobReport=True)
+p=PostProcessor(".",inputFiles(),selection.replace('\n',' '),"keep_and_drop.txt",modules=[puWeight(),jetmetUncertaintiesAll(),mhtVHbb(),btagSFProducer("cmva"),vhbb()],provenance=True,fwkJobReport=True,jsonInput=runsAndLumis())
 #p=PostProcessor(".",inputFiles(),selection.replace('\n',' '),"keep_and_drop.txt",modules=[jetmetUncertaintiesAll(),mht(),btagSFProducer("cmva"),vhbb()],provenance=True,fwkJobReport=True)
 #p=PostProcessor(".",inputFiles(),selection.replace('\n',' '),"keep_and_drop.txt",modules=[jetmetUncertaintiesAll(),btagSFProducer("cmva"),vhbb()],provenance=True,fwkJobReport=True,jsonInput=runsAndLumis())
 p.run()
