@@ -6,7 +6,8 @@ from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 from PhysicsTools.NanoAODTools.postprocessing.tools import * #deltaR, matching etc..
 
 class VHbbProducer(Module):
-    def __init__(self):
+    def __init__(self, isMC):
+        self.isMC = isMC
         pass
     def beginJob(self):
         pass
@@ -28,6 +29,9 @@ class VHbbProducer(Module):
         self.out.branch("H_mass",  "F");
         self.out.branch("SA_Ht",  "F");
         self.out.branch("SA5",  "F");
+        self.out.branch("Jet_Pt", "F", 1, "nJet");
+        self.out.branch("MET_Pt","F");
+        self.out.branch("MET_Phi","F");
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
 
@@ -39,7 +43,22 @@ class VHbbProducer(Module):
                     matched.add(saj)
 	return matched
 			
-		    
+    def pt(self, jet, isMC):
+        ## the MC has JER smearing applied which has output branch Jet_pt_smeared which should be compared 
+        ## with data branch Jet_pt. This essentially aliases the two branches to one common jet pt variable.
+        if isMC:
+            return jet.pt_smeared
+        else:
+            return jet.pt		    
+    
+    def met(self, met, isMC):
+        ## the MC has JER smearing applied which has output branch met_[pt/phi]_smeared which should be compared 
+        ## with data branch MET_[pt/phi]. This essentially aliases the two branches to one common variable.
+        if isMC:
+            return (met.pt_smeared,met.phi_smeared)
+        else:
+            return (met.pt,met.phi)
+	   
 	   
 
     def analyze(self, event):
@@ -49,6 +68,10 @@ class VHbbProducer(Module):
         jets = list(Collection(event, "Jet"))
         met = Object(event, "MET")
         sa = Collection(event, "SoftActivityJet")
+
+        metPt,metPhi = self.met(met,self.isMC)
+        self.out.fillBranch("MET_Pt",metPt)
+        self.out.fillBranch("MET_Phi",metPhi) 
       
         Vtype = -1
 
@@ -86,7 +109,7 @@ class VHbbProducer(Module):
             Vtype = 5
         else:
             Vtype = 4
-            if event.__getattr__("MET_pt") < 150:
+            if metPt < 150:
                 Vtype = -1
         self.out.fillBranch("Vtype",Vtype)
 
@@ -119,11 +142,18 @@ class VHbbProducer(Module):
             if jetInd >= 0:
                 jetFilterFlags[jetInd] = False
                 #jets[jetInd].jetFilter = False
-
         self.out.fillBranch("Jet_lepFilter",jetFilterFlags)
 
+        ## alias JER-smeared MC jet pT and data jet pT to the same
+        ## branch name
+        jetPts = [-99.]*len(jets)
+        for i in xrange(len(jets)):
+            jetPts[i] = self.pt(jets[i],self.isMC)
+
+        self.out.fillBranch("Jet_Pt",jetPts)
+
         ## Add explicit indices for selected H(bb) candidate jets
-        jetsForHiggs = [x for x in jets if x.lepFilter and x.puId>0 and x.jetId>0 and x.pt_smeared>20 and abs(x.eta)<2.5]
+        jetsForHiggs = [x for x in jets if x.lepFilter and x.puId>0 and x.jetId>0 and x.Pt>20 and abs(x.eta)<2.5]
         if (len(jetsForHiggs) < 2): return False
         hJets = sorted(jetsForHiggs, key = lambda jet : jet.btagCMVA, reverse=True)[0:2]
         hJidx = [jets.index(x) for x in hJets]
@@ -132,8 +162,8 @@ class VHbbProducer(Module):
         ## Save a few basic reco. H kinematics
         hj1 = ROOT.TLorentzVector()
         hj2 = ROOT.TLorentzVector()
-        hj1.SetPtEtaPhiM(jets[hJidx[0]].pt_smeared,jets[hJidx[0]].eta,jets[hJidx[0]].phi,jets[hJidx[0]].mass)
-        hj2.SetPtEtaPhiM(jets[hJidx[1]].pt_smeared,jets[hJidx[1]].eta,jets[hJidx[1]].phi,jets[hJidx[1]].mass)
+        hj1.SetPtEtaPhiM(jets[hJidx[0]].Pt,jets[hJidx[0]].eta,jets[hJidx[0]].phi,jets[hJidx[0]].mass)
+        hj2.SetPtEtaPhiM(jets[hJidx[1]].Pt,jets[hJidx[1]].eta,jets[hJidx[1]].phi,jets[hJidx[1]].mass)
         hbb = hj1 + hj2
         self.out.fillBranch("H_pt",hbb.Pt())
         self.out.fillBranch("H_phi",hbb.Phi())
@@ -158,4 +188,5 @@ class VHbbProducer(Module):
 
 # define modules using the syntax 'name = lambda : constructor' to avoid having them loaded when not needed
 
-vhbb = lambda : VHbbProducer() 
+vhbb = lambda : VHbbProducer(True) 
+vhbb_data = lambda : VHbbProducer(False) 
