@@ -16,6 +16,7 @@ class VHbbBoostedProducer(Module):
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.out = wrappedOutputTree
         
+        self.out.branch("Pt_fjidx",  "I");        
         self.out.branch("Msd_fjidx",  "I");
         self.out.branch("Hbb_fjidx",  "I");
         
@@ -184,22 +185,24 @@ class VHbbBoostedProducer(Module):
         self.out.fillBranch("FatJet_HiggsProducts",FatJet_HiggsProducts)
         self.out.fillBranch("FatJet_ZProducts",FatJet_ZProducts)
         self.out.fillBranch("FatJet_WProducts",FatJet_WProducts)
-        
-                    
+                           
 
         ## indices for Hjets and soft activity (?)
         fatjetsForHiggs = [x for x in fatjets if x.lepFilter and x.jetId>0 and x.Pt>250 and x.Msoftdrop>40 and (x.eta)<2.5]
-        if (len(fatjetsForHiggs) > 1): 
+        if (len(fatjetsForHiggs) >= 1): 
             
+            jh = sorted(fatjetsForHiggs, key = lambda jet : jet.Pt, reverse=True)
+            pt_idx = fatjets.index(jh[0])            
             jh = sorted(fatjetsForHiggs, key = lambda jet : jet.Msoftdrop, reverse=True)
-            msd_idx = fatjetsForHiggs.index(jh[0])
+            msd_idx = fatjets.index(jh[0])
             jh = sorted(fatjetsForHiggs, key = lambda jet : jet.btagHbb, reverse=True) 
-            hbb_idx = fatjetsForHiggs.index(jh[0])
+            hbb_idx = fatjets.index(jh[0])
+            self.out.fillBranch("Pt_fjidx",pt_idx)
             self.out.fillBranch("Msd_fjidx",msd_idx)
             self.out.fillBranch("Hbb_fjidx",hbb_idx)
 
             ## SA leading pt
-            matchedSAJets=self.matchSoftActivity([fatjetsForHiggs[0]],sa)
+            matchedSAJets=self.matchSoftActivity([fatjets[pt_idx]],sa)
             matchedSAJetsPt5=[x for x in matchedSAJets if x.pt>5]
             softActivityJetHT=event.SoftActivityJetHT2-sum([x.pt for x in matchedSAJets])
             self.out.fillBranch("SAptfj_HT",softActivityJetHT)
@@ -207,7 +210,7 @@ class VHbbBoostedProducer(Module):
             self.out.fillBranch("SAptfj5",softActivityJetNjets5)
 
             ## SA leading mass
-            matchedSAJets=self.matchSoftActivity([fatjetsForHiggs[msd_idx]],sa)
+            matchedSAJets=self.matchSoftActivity([fatjets[msd_idx]],sa)
             matchedSAJetsPt5=[x for x in matchedSAJets if x.pt>5]
             softActivityJetHT=event.SoftActivityJetHT2-sum([x.pt for x in matchedSAJets])
             self.out.fillBranch("SAmfj_HT",softActivityJetHT)
@@ -215,7 +218,7 @@ class VHbbBoostedProducer(Module):
             self.out.fillBranch("SAmfj5",softActivityJetNjets5)
 
             ## SA leading mass
-            matchedSAJets=self.matchSoftActivity([fatjetsForHiggs[hbb_idx]],sa)
+            matchedSAJets=self.matchSoftActivity([fatjets[hbb_idx]],sa)
             matchedSAJetsPt5=[x for x in matchedSAJets if x.pt>5]
             softActivityJetHT=event.SoftActivityJetHT2-sum([x.pt for x in matchedSAJets])
             self.out.fillBranch("SAhbbfj_HT",softActivityJetHT)
@@ -224,6 +227,7 @@ class VHbbBoostedProducer(Module):
         
         else:
             
+            self.out.fillBranch("Pt_fjidx",-1)
             self.out.fillBranch("Msd_fjidx",-1)
             self.out.fillBranch("Hbb_fjidx",-1)
             self.out.fillBranch("SAptfj_HT",-1)
