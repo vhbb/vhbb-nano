@@ -154,7 +154,7 @@ class VHbbProducer(Module):
 
         ## Add explicit indices for selected H(bb) candidate jets
         jetsForHiggs = [x for x in jets if x.lepFilter and x.puId>0 and x.jetId>0 and x.Pt>20 and abs(x.eta)<2.5]
-        if (len(jetsForHiggs) > 2): 
+        if (len(jetsForHiggs) >= 2): 
             hJets = sorted(jetsForHiggs, key = lambda jet : jet.btagCMVA, reverse=True)[0:2]
             hJidx = [jets.index(x) for x in hJets]
             self.out.fillBranch("hJidx",hJidx)
