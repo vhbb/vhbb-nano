@@ -47,7 +47,7 @@ class VHbbProducer(Module):
         ## the MC has JER smearing applied which has output branch Jet_pt_smeared which should be compared 
         ## with data branch Jet_pt. This essentially aliases the two branches to one common jet pt variable.
         if isMC:
-            return jet.pt_smeared
+            return jet.pt_nom
         else:
             return jet.pt		    
     
@@ -55,7 +55,7 @@ class VHbbProducer(Module):
         ## the MC has JER smearing applied which has output branch met_[pt/phi]_smeared which should be compared 
         ## with data branch MET_[pt/phi]. This essentially aliases the two branches to one common variable.
         if isMC:
-            return (met.pt_smeared,met.phi_smeared)
+            return (met.pt_nom,met.phi_nom)
         else:
             return (met.pt,met.phi)
 	   
@@ -154,34 +154,43 @@ class VHbbProducer(Module):
 
         ## Add explicit indices for selected H(bb) candidate jets
         jetsForHiggs = [x for x in jets if x.lepFilter and x.puId>0 and x.jetId>0 and x.Pt>20 and abs(x.eta)<2.5]
-        if (len(jetsForHiggs) < 2): return False
-        hJets = sorted(jetsForHiggs, key = lambda jet : jet.btagCMVA, reverse=True)[0:2]
-        hJidx = [jets.index(x) for x in hJets]
-        self.out.fillBranch("hJidx",hJidx)
+        if (len(jetsForHiggs) > 2): 
+            hJets = sorted(jetsForHiggs, key = lambda jet : jet.btagCMVA, reverse=True)[0:2]
+            hJidx = [jets.index(x) for x in hJets]
+            self.out.fillBranch("hJidx",hJidx)
 
-        ## Save a few basic reco. H kinematics
-        hj1 = ROOT.TLorentzVector()
-        hj2 = ROOT.TLorentzVector()
-        hj1.SetPtEtaPhiM(jets[hJidx[0]].Pt,jets[hJidx[0]].eta,jets[hJidx[0]].phi,jets[hJidx[0]].mass)
-        hj2.SetPtEtaPhiM(jets[hJidx[1]].Pt,jets[hJidx[1]].eta,jets[hJidx[1]].phi,jets[hJidx[1]].mass)
-        hbb = hj1 + hj2
-        self.out.fillBranch("H_pt",hbb.Pt())
-        self.out.fillBranch("H_phi",hbb.Phi())
-        self.out.fillBranch("H_eta",hbb.Eta())
-        self.out.fillBranch("H_mass",hbb.M())
+            ## Save a few basic reco. H kinematics
+            hj1 = ROOT.TLorentzVector()
+            hj2 = ROOT.TLorentzVector()
+            hj1.SetPtEtaPhiM(jets[hJidx[0]].Pt,jets[hJidx[0]].eta,jets[hJidx[0]].phi,jets[hJidx[0]].mass)
+            hj2.SetPtEtaPhiM(jets[hJidx[1]].Pt,jets[hJidx[1]].eta,jets[hJidx[1]].phi,jets[hJidx[1]].mass)
+            hbb = hj1 + hj2
+            self.out.fillBranch("H_pt",hbb.Pt())
+            self.out.fillBranch("H_phi",hbb.Phi())
+            self.out.fillBranch("H_eta",hbb.Eta())
+            self.out.fillBranch("H_mass",hbb.M())
 
-	## Compute soft activity vetoing Higgs jets
-	#find signal footprint
-	matchedSAJets=self.matchSoftActivity(hJets,sa)
-	# update SA variables 
+            ## Compute soft activity vetoing Higgs jets
+            #find signal footprint
+            matchedSAJets=self.matchSoftActivity(hJets,sa)
+            # update SA variables 
 
 
-	softActivityJetHT=event.SoftActivityJetHT2-sum([x.pt for x in matchedSAJets])
-        self.out.fillBranch("SA_Ht",softActivityJetHT)
+            softActivityJetHT=event.SoftActivityJetHT2-sum([x.pt for x in matchedSAJets])
+            self.out.fillBranch("SA_Ht",softActivityJetHT)
 
-	matchedSAJetsPt5=[x for x in matchedSAJets if x.pt>5]
-        softActivityJetNjets5=event.SoftActivityJetNjets5-len(matchedSAJetsPt5)
-        self.out.fillBranch("SA5",softActivityJetNjets5)
+            matchedSAJetsPt5=[x for x in matchedSAJets if x.pt>5]
+            softActivityJetNjets5=event.SoftActivityJetNjets5-len(matchedSAJetsPt5)
+            self.out.fillBranch("SA5",softActivityJetNjets5)
+        
+        else:
+            self.out.fillBranch("hJidx",[-1,-1])
+            self.out.fillBranch("H_pt",-1)
+            self.out.fillBranch("H_phi",-1)
+            self.out.fillBranch("H_eta",-1)
+            self.out.fillBranch("H_mass",-1)
+            self.out.fillBranch("SA_Ht",-1)
+            self.out.fillBranch("SA5",-1)
 
         return True
                 
