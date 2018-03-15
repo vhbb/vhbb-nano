@@ -24,5 +24,5 @@ mv module $CMSSW_BASE/module
 mv python $CMSSW_BASE/python
 
 echo Found Proxy in: $X509_USER_PROXY
-python postproc.py $1
+python postproc.py $1 $2
 fi

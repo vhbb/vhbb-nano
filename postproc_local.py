@@ -13,10 +13,22 @@ from  PhysicsTools.NanoAODTools.postprocessing.modules.jme.mht import *
 #from  PhysicsTools.NanoAODTools.postprocessing.examples.puWeightProducer import *
 from PhysicsTools.NanoAODTools.postprocessing.modules.common.puWeightProducer import *
 
+isMC = 0
+era = "2017"
+if len(sys.argv) > 1:
+    isMC = bool(sys.argv[1])
+if len(sys.argv) > 2:
+    era = sys.argv[2]
+if era!="2016" and era!="2017":
+    print "Run era must be 2016 or 2017, exiting.."
+    sys.exit(1)
+btagger = "deepcsv"
+if era == "2016":
+    btagger = "cmva"
+
 #files=["root://cms-xrd-global.cern.ch//store/user/arizzi/NanoTestProd006/QCD_Pt-80to120_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8/RunIISummer17MiniAOD-92X-NanoCrabProd006/171006_144159/0000/nanolzma_1.root"]
 #files=["lzma_1.root"]
-#files=["root://cms-xrd-global.cern.ch://store/user/arizzi/NanoCrabProdXmas/WH_HToBB_WToLNu_M125_13TeV_amcatnloFXFX_madspin_pythia8/NanoCrabXmasRunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asym___heIV_v6-v1__215/171221_111154/0000/nano_1.root"]
-files=["root://cms-xrd-global.cern.ch://store/mc/RunIISummer16NanoAOD/TT_TuneCUETP8M2T4up_13TeV-powheg-pythia8/NANOAODSIM/PUMoriond17_05Feb2018_94X_mcRun2_asymptotic_v2-v1/80000/20848D56-DC0B-E811-90DA-E0071B7AC700.root"]
+files=["root://cms-xrd-global.cern.ch://store/user/arizzi/NanoCrabProdXmas/WH_HToBB_WToLNu_M125_13TeV_amcatnloFXFX_madspin_pythia8/NanoCrabXmasRunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asym___heIV_v6-v1__215/171221_111154/0000/nano_1.root"]
 #files=["root://cms-xrd-global.cern.ch://store/user/arizzi/NanoTestProd004/WminusH_HToBB_WToLNu_M125_13TeV_powheg_pythia8/NanoCrabProd004/171002_120520/0000/lzma_1.root"]
 #files=["root://cms-xrd-global.cern.ch://store/user/arizzi/NanoTestProd004/WplusH_HToBB_WToLNu_M125_13TeV_powheg_pythia8/NanoCrabProd004/171002_120552/0000/lzma_1.root"]
 #files=["root://cms-xrd-global.cern.ch://store/user/arizzi/NanoTestProd004/ZH_HToBB_ZToLL_M125_13TeV_powheg_pythia8/NanoCrabProd004/171002_120644/0000/lzma_1.root"]
@@ -40,18 +52,22 @@ selectionALL='''Sum$(Electron_pt > 20 && Electron_mvaSpring16GP_WP90) >= 2  ||
 Sum$(Jet_pt *(abs(Jet_eta)<2.5 && Jet_pt > 20 && Jet_jetId)) > 160  || 
 MET_pt > 100  || Sum$(Muon_pt > 20 && Muon_tightId) >= 1
 '''
-
 mhtVHbb = lambda : mhtProducer( lambda j : j.pt > 30,
                             lambda mu : mu.pt > 5 and mu.pfRelIso04_all < 0.4,
                             lambda el : el.pt > 5 and el.pfRelIso03_all < 0.4 )
 
-#from PhysicsTools.NanoAODTools.postprocessing.framework.crabhelper import inputFiles,runsAndLumis
 #p=PostProcessor(".",files,selection.replace('\n',' '),"keep_and_drop.txt",[jetmetUncertainties(),vhbb()],provenance=True)
-p=PostProcessor(".",files,selection.replace('\n',' '),"keep_and_drop.txt",[puWeight(),jetmetUncertainties2016All(),mhtVHbb(),btagSFProducer("2016","cmva"),vhbb2016()],provenance=True)
-#p=PostProcessor(".",files,selection.replace('\n',' '),"keep_and_drop.txt",[jetmetUncertaintiesAll(),mht(),btagSFProducer("cmva"),vhbb()],provenance=True)
+##p=PostProcessor(".",files,selection.replace('\n',' '),"keep_and_drop.txt",[jetmetUncertaintiesAll(),btagSFProducer("cmva"),vhbb()],provenance=True)
 #p=PostProcessor(".",files,selection.replace('\n',' '),"keep_and_drop.txt",[jecUncertAll_cppOut(),jetmetUncertainties(),btagSFProducer("cmva"),vhbb()],provenance=True)
 #p=PostProcessor(".",files,selection.replace('\n',' '),"keep_and_drop.txt",[jecUncertAll_cppOut(),jetmetUncertaintiesAll(),btagSFProducer("cmva"),vhbb()],provenance=True)
 #p.run()
 
+
+if isMC:
+    p=PostProcessor(".",files,selection.replace('\n',' '),"keep_and_drop.txt",modules=[puWeight(),jetmetUncertainties2016All(),mhtVHbb(),btagSFProducer(era,btagger),VHbbProducer(isMC,era)],provenance=True)
+else:
+    p=PostProcessor(".",files,selection.replace('\n',' '),"keep_and_drop.txt",modules=[mhtVHbb(),VHbbProducer(isMC,era)],provenance=True)
 p.run()
 
+print "DONE"
+os.system("ls -lR")

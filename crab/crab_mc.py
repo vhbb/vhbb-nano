@@ -11,6 +11,7 @@ config.General.transferLogs = True
 config.JobType.pluginName = 'Analysis'
 config.JobType.psetName = 'PSet.py'
 config.JobType.scriptExe = 'crab_script.sh'
+config.JobType.scriptArgs = ['1','2016']
 config.JobType.inputFiles = ['../keep_and_drop.txt','../postproc.py','../../../../../../scripts/haddnano.py'] #hadd nano will not be needed once nano tools are in cmssw
 config.JobType.sendPythonFolder	 = True
 
@@ -47,4 +48,5 @@ if __name__ == '__main__':
 	n+=1
 	nnn="%s"%n
         config.General.requestName = "VHbbPostNano2016_V2_"+dataset.split('/')[1][:30]+dataset.split('/')[2][:30]+nnn
+        config.General.outputDatasetTag = dataset.split('/')[2][:30]+nnn
         crabCommand('submit', config = config)
