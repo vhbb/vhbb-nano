@@ -55,7 +55,7 @@ from PhysicsTools.NanoAODTools.postprocessing.framework.crabhelper import inputF
 #p=PostProcessor(".",inputFiles(),selection.replace('\n',' '),"keep_and_drop.txt",modules=[puWeight(),jetmetUncertaintiesAll(),btagSFProducer("cmva"),vhbb()],provenance=True,fwkJobReport=True)
 #p=PostProcessor(".",inputFiles(),selection.replace('\n',' '),"keep_and_drop.txt",modules=[puWeight(),jetmetUncertaintiesAll(),mhtVHbb(),btagSFProducer("cmva"),vhbb()],provenance=True)
 #p=PostProcessor(".",inputFiles(),selection.replace('\n',' '),"keep_and_drop.txt",modules=[puWeight(),jetmetUncertaintiesAll(),mhtVHbb(),btagSFProducer("cmva"),vhbb()],provenance=True,jsonInput=runsAndLumis())
-p=PostProcessor(".",inputFiles(),selection.replace('\n',' '),"keep_and_drop.txt",modules=[puWeight(),jetmetUncertaintiesAll(),mhtVHbb(),btagSFProducer("cmva"),vhbb()],provenance=True,fwkJobReport=True,jsonInput=runsAndLumis())
+p=PostProcessor(".",inputFiles(),selection.replace('\n',' '),"keep_and_drop.txt",modules=[puWeight(),jetmetUncertainties2016All(),mhtVHbb(),btagSFProducer("2016","cmva"),vhbb2016()],provenance=True,fwkJobReport=True,jsonInput=runsAndLumis())
 #p=PostProcessor(".",inputFiles(),selection.replace('\n',' '),"keep_and_drop.txt",modules=[jetmetUncertaintiesAll(),mht(),btagSFProducer("cmva"),vhbb()],provenance=True,fwkJobReport=True)
 #p=PostProcessor(".",inputFiles(),selection.replace('\n',' '),"keep_and_drop.txt",modules=[jetmetUncertaintiesAll(),btagSFProducer("cmva"),vhbb()],provenance=True,fwkJobReport=True,jsonInput=runsAndLumis())
 p.run()

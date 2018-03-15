@@ -1,12 +1,14 @@
 import ROOT
 ROOT.PyConfig.IgnoreCommandLineOptions = True
+import sys
 
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection,Object
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 from PhysicsTools.NanoAODTools.postprocessing.tools import * #deltaR, matching etc..
 
 class VHbbProducer(Module):
-    def __init__(self, isMC):
+    def __init__(self, isMC, era):
+        self.era = era
         self.isMC = isMC
         pass
     def beginJob(self):
@@ -23,10 +25,15 @@ class VHbbProducer(Module):
         self.out.branch("V_mt",  "F");
         self.out.branch("Jet_lepFilter",  "O", 1, "nJet");
         self.out.branch("hJidx",  "I", 2);
+        self.out.branch("hJidxCMVA",  "I", 2);
         self.out.branch("H_pt",  "F");
         self.out.branch("H_eta",  "F");
         self.out.branch("H_phi",  "F");
         self.out.branch("H_mass",  "F");
+        self.out.branch("HCMVA_pt",  "F");
+        self.out.branch("HCMVA_eta",  "F");
+        self.out.branch("HCMVA_phi",  "F");
+        self.out.branch("HCMVA_mass",  "F");
         self.out.branch("SA_Ht",  "F");
         self.out.branch("SA5",  "F");
         self.out.branch("Jet_Pt", "F", 1, "nJet");
@@ -44,22 +51,30 @@ class VHbbProducer(Module):
 	return matched
 			
     def pt(self, jet, isMC):
-        ## the MC has JER smearing applied which has output branch Jet_pt_smeared which should be compared 
+        ## the MC has JER smearing applied which has output branch Jet_pt_nom which should be compared 
         ## with data branch Jet_pt. This essentially aliases the two branches to one common jet pt variable.
         if isMC:
-            return jet.pt_smeared
+            return jet.pt_nom
         else:
             return jet.pt		    
     
     def met(self, met, isMC):
-        ## the MC has JER smearing applied which has output branch met_[pt/phi]_smeared which should be compared 
+        ## the MC has JER smearing applied which has output branch met_[pt/phi]_nom which should be compared 
         ## with data branch MET_[pt/phi]. This essentially aliases the two branches to one common variable.
         if isMC:
-            return (met.pt_smeared,met.phi_smeared)
+            return (met.pt_nom,met.phi_nom)
         else:
             return (met.pt,met.phi)
-	   
-	   
+	  
+    def btag(self, jet):
+        ## make the btagging discriminator used a function of era. CMVA for 2016 and deepCSV for 2017
+        if (self.era == "2016"):
+            return jet.btagCMVA
+	elif (self.era == "2017"):
+            return jet.btagDeepB
+        else:
+            print "tried to call btag() for unknown era: %s, quitting..." % self.era
+            sys.exit(1) 
 
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
@@ -155,10 +170,10 @@ class VHbbProducer(Module):
         ## Add explicit indices for selected H(bb) candidate jets
         jetsForHiggs = [x for x in jets if x.lepFilter and x.puId>0 and x.jetId>0 and x.Pt>20 and abs(x.eta)<2.5]
         if (len(jetsForHiggs) < 2): return False
-        hJets = sorted(jetsForHiggs, key = lambda jet : jet.btagCMVA, reverse=True)[0:2]
+        hJets = sorted(jetsForHiggs, key = lambda jet : self.btag(jet), reverse=True)[0:2]
         hJidx = [jets.index(x) for x in hJets]
         self.out.fillBranch("hJidx",hJidx)
-
+        
         ## Save a few basic reco. H kinematics
         hj1 = ROOT.TLorentzVector()
         hj2 = ROOT.TLorentzVector()
@@ -169,6 +184,24 @@ class VHbbProducer(Module):
         self.out.fillBranch("H_phi",hbb.Phi())
         self.out.fillBranch("H_eta",hbb.Eta())
         self.out.fillBranch("H_mass",hbb.M())
+        
+        ## calculate separately selected indices using CMVA, although keep in mind this is already the
+        ## default for 2016
+        hJetsCMVA = sorted(jetsForHiggs, key = lambda jet : jet.btagCMVA, reverse=True)[0:2]
+        hJidxCMVA = [jets.index(x) for x in hJetsCMVA]
+        self.out.fillBranch("hJidxCMVA",hJidxCMVA)
+        
+        ## Save a few basic reco. H kinematics (from CMVA)
+        hj1cmva = ROOT.TLorentzVector()
+        hj2cmva = ROOT.TLorentzVector()
+        hj1cmva.SetPtEtaPhiM(jets[hJidxCMVA[0]].Pt,jets[hJidxCMVA[0]].eta,jets[hJidxCMVA[0]].phi,jets[hJidxCMVA[0]].mass)
+        hj2cmva.SetPtEtaPhiM(jets[hJidxCMVA[1]].Pt,jets[hJidxCMVA[1]].eta,jets[hJidxCMVA[1]].phi,jets[hJidxCMVA[1]].mass)
+        hbbcmva = hj1cmva + hj2cmva
+        self.out.fillBranch("HCMVA_pt",hbbcmva.Pt())
+        self.out.fillBranch("HCMVA_phi",hbbcmva.Phi())
+        self.out.fillBranch("HCMVA_eta",hbbcmva.Eta())
+        self.out.fillBranch("HCMVA_mass",hbbcmva.M())
+
 
 	## Compute soft activity vetoing Higgs jets
 	#find signal footprint
@@ -188,5 +221,7 @@ class VHbbProducer(Module):
 
 # define modules using the syntax 'name = lambda : constructor' to avoid having them loaded when not needed
 
-vhbb = lambda : VHbbProducer(True) 
-vhbb_data = lambda : VHbbProducer(False) 
+vhbb2016 = lambda : VHbbProducer(True,"2016") 
+vhbb2016_data = lambda : VHbbProducer(False,"2016") 
+vhbb2017 = lambda : VHbbProducer(True,"2017") 
+vhbb2017_data = lambda : VHbbProducer(False,"2017") 

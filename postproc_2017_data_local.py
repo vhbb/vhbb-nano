@@ -15,7 +15,8 @@ from PhysicsTools.NanoAODTools.postprocessing.modules.common.puWeightProducer im
 
 #files=["root://cms-xrd-global.cern.ch//store/user/arizzi/NanoTestProd006/QCD_Pt-80to120_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8/RunIISummer17MiniAOD-92X-NanoCrabProd006/171006_144159/0000/nanolzma_1.root"]
 #files=["lzma_1.root"]
-files=["root://cms-xrd-global.cern.ch://store/user/arizzi/NanoCrabProdXmas/WH_HToBB_WToLNu_M125_13TeV_amcatnloFXFX_madspin_pythia8/NanoCrabXmasRunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asym___heIV_v6-v1__215/171221_111154/0000/nano_1.root"]
+#files=["root://cms-xrd-global.cern.ch://store/user/arizzi/NanoCrabProdXmas/WH_HToBB_WToLNu_M125_13TeV_amcatnloFXFX_madspin_pythia8/NanoCrabXmasRunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asym___heIV_v6-v1__215/171221_111154/0000/nano_1.root"]
+files=["root://cms-xrd-global.cern.ch://store/data/Run2016D/SingleElectron/NANOAOD/05Feb2018-v2/00000/2827562B-3F0B-E811-90AE-E0071B7AE500.root"]
 #files=["root://cms-xrd-global.cern.ch://store/user/arizzi/NanoTestProd004/WminusH_HToBB_WToLNu_M125_13TeV_powheg_pythia8/NanoCrabProd004/171002_120520/0000/lzma_1.root"]
 #files=["root://cms-xrd-global.cern.ch://store/user/arizzi/NanoTestProd004/WplusH_HToBB_WToLNu_M125_13TeV_powheg_pythia8/NanoCrabProd004/171002_120552/0000/lzma_1.root"]
 #files=["root://cms-xrd-global.cern.ch://store/user/arizzi/NanoTestProd004/ZH_HToBB_ZToLL_M125_13TeV_powheg_pythia8/NanoCrabProd004/171002_120644/0000/lzma_1.root"]
@@ -30,7 +31,7 @@ selection='''(Sum$(Electron_pt > 20 && Electron_mvaSpring16GP_WP90) >= 2  ||
  Sum$(Electron_pt > 20 && Electron_mvaSpring16GP_WP80) >= 1   ||
  Sum$(Muon_pt > 20 && Muon_tightId) >= 1 ||
  (Sum$(Muon_pt > 20) == 0 && Sum$(Electron_pt > 20 && Electron_mvaSpring16GP_WP90) == 0 && MET_pt > 150 ) ) 
- &&  Sum$((abs(Jet_eta)<2.5 && Jet_pt > 20 && Jet_jetId)) >= 2 
+ &&  Sum$((abs(Jet_eta)<2.5 && Jet_pt > 20 && Jet_jetId)) >= 2 && Entry$ < 1000 
 '''
 
 selectionALL='''Sum$(Electron_pt > 20 && Electron_mvaSpring16GP_WP90) >= 2  ||
@@ -39,26 +40,18 @@ selectionALL='''Sum$(Electron_pt > 20 && Electron_mvaSpring16GP_WP90) >= 2  ||
 Sum$(Jet_pt *(abs(Jet_eta)<2.5 && Jet_pt > 20 && Jet_jetId)) > 160  || 
 MET_pt > 100  || Sum$(Muon_pt > 20 && Muon_tightId) >= 1
 '''
+
 mhtVHbb = lambda : mhtProducer( lambda j : j.pt > 30,
                             lambda mu : mu.pt > 5 and mu.pfRelIso04_all < 0.4,
                             lambda el : el.pt > 5 and el.pfRelIso03_all < 0.4 )
 
+#from PhysicsTools.NanoAODTools.postprocessing.framework.crabhelper import inputFiles,runsAndLumis
 #p=PostProcessor(".",files,selection.replace('\n',' '),"keep_and_drop.txt",[jetmetUncertainties(),vhbb()],provenance=True)
-##p=PostProcessor(".",files,selection.replace('\n',' '),"keep_and_drop.txt",[jetmetUncertaintiesAll(),btagSFProducer("cmva"),vhbb()],provenance=True)
+p=PostProcessor(".",files,selection.replace('\n',' '),"keep_and_drop.txt",[mhtVHbb(),vhbb2017_data()],provenance=True)
+#p=PostProcessor(".",files,selection.replace('\n',' '),"keep_and_drop.txt",[jetmetUncertaintiesAll(),mht(),btagSFProducer("cmva"),vhbb()],provenance=True)
 #p=PostProcessor(".",files,selection.replace('\n',' '),"keep_and_drop.txt",[jecUncertAll_cppOut(),jetmetUncertainties(),btagSFProducer("cmva"),vhbb()],provenance=True)
 #p=PostProcessor(".",files,selection.replace('\n',' '),"keep_and_drop.txt",[jecUncertAll_cppOut(),jetmetUncertaintiesAll(),btagSFProducer("cmva"),vhbb()],provenance=True)
 #p.run()
 
-#this takes care of converting the input files from CRAB
-from PhysicsTools.NanoAODTools.postprocessing.framework.crabhelper import inputFiles,runsAndLumis
-
-#p=PostProcessor(".",inputFiles(),selection.replace('\n',' '),"keep_and_drop.txt",modules=[puWeight(),jetmetUncertaintiesAll(),btagSFProducer("cmva"),vhbb()],provenance=True,fwkJobReport=True)
-#p=PostProcessor(".",inputFiles(),selection.replace('\n',' '),"keep_and_drop.txt",modules=[puWeight(),jetmetUncertaintiesAll(),mhtVHbb(),btagSFProducer("cmva"),vhbb()],provenance=True)
-#p=PostProcessor(".",inputFiles(),selection.replace('\n',' '),"keep_and_drop.txt",modules=[puWeight(),jetmetUncertaintiesAll(),mhtVHbb(),btagSFProducer("cmva"),vhbb()],provenance=True,jsonInput=runsAndLumis())
-p=PostProcessor(".",inputFiles(),selection.replace('\n',' '),"keep_and_drop.txt",modules=[mhtVHbb(),vhbb2016_data()],provenance=True,fwkJobReport=True,jsonInput=runsAndLumis())
-#p=PostProcessor(".",inputFiles(),selection.replace('\n',' '),"keep_and_drop.txt",modules=[jetmetUncertaintiesAll(),mht(),btagSFProducer("cmva"),vhbb()],provenance=True,fwkJobReport=True)
-#p=PostProcessor(".",inputFiles(),selection.replace('\n',' '),"keep_and_drop.txt",modules=[jetmetUncertaintiesAll(),btagSFProducer("cmva"),vhbb()],provenance=True,fwkJobReport=True,jsonInput=runsAndLumis())
 p.run()
 
-print "DONE"
-os.system("ls -lR")

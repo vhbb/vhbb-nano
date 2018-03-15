@@ -47,7 +47,7 @@ mhtVHbb = lambda : mhtProducer( lambda j : j.pt > 30,
 
 #from PhysicsTools.NanoAODTools.postprocessing.framework.crabhelper import inputFiles,runsAndLumis
 #p=PostProcessor(".",files,selection.replace('\n',' '),"keep_and_drop.txt",[jetmetUncertainties(),vhbb()],provenance=True)
-p=PostProcessor(".",files,selection.replace('\n',' '),"keep_and_drop.txt",[puWeight(),jetmetUncertaintiesAll(),mhtVHbb(),btagSFProducer("cmva"),vhbb()],provenance=True)
+p=PostProcessor(".",files,selection.replace('\n',' '),"keep_and_drop.txt",[puWeight(),jetmetUncertainties2016All(),mhtVHbb(),btagSFProducer("2016","cmva"),vhbb2016()],provenance=True)
 #p=PostProcessor(".",files,selection.replace('\n',' '),"keep_and_drop.txt",[jetmetUncertaintiesAll(),mht(),btagSFProducer("cmva"),vhbb()],provenance=True)
 #p=PostProcessor(".",files,selection.replace('\n',' '),"keep_and_drop.txt",[jecUncertAll_cppOut(),jetmetUncertainties(),btagSFProducer("cmva"),vhbb()],provenance=True)
 #p=PostProcessor(".",files,selection.replace('\n',' '),"keep_and_drop.txt",[jecUncertAll_cppOut(),jetmetUncertaintiesAll(),btagSFProducer("cmva"),vhbb()],provenance=True)

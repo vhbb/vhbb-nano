@@ -17,7 +17,8 @@ from PhysicsTools.NanoAODTools.postprocessing.modules.common.puWeightProducer im
 #files=["lzma_1.root"]
 #files=["root://cms-xrd-global.cern.ch://store/user/arizzi/NanoCrabProdXmas/WH_HToBB_WToLNu_M125_13TeV_amcatnloFXFX_madspin_pythia8/NanoCrabXmasRunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asym___heIV_v6-v1__215/171221_111154/0000/nano_1.root"]
 #files=["root://cms-xrd-global.cern.ch://store/mc/RunIISummer16NanoAOD/TT_TuneCUETP8M2T4up_13TeV-powheg-pythia8/NANOAODSIM/PUMoriond17_05Feb2018_94X_mcRun2_asymptotic_v2-v1/80000/20848D56-DC0B-E811-90DA-E0071B7AC700.root"]
-files=["root://cms-xrd-global.cern.ch://store/user/arizzi/Nano01Fall17/ZH_HToBB_ZToLL_M120_13TeV_powheg_pythia8/RunIIFall17MiniAOD-94X-Nano01Fall17/180205_183348/0000/test94X_NANO_1.root"]
+#files=["root://cms-xrd-global.cern.ch://store/user/arizzi/Nano01Fall17/ZH_HToBB_ZToLL_M120_13TeV_powheg_pythia8/RunIIFall17MiniAOD-94X-Nano01Fall17/180205_183348/0000/test94X_NANO_1.root"]
+files=["root://cms-xrd-global.cern.ch://store/user/arizzi/Nano01Fall17/ZH_HToBB_ZToLL_M120_13TeV_powheg_pythia8/RunIIFall17MiniAOD-94X-Nano01Fall17/180205_183348/0000/test94X_NANO_1.root","root://cms-xrd-global.cern.ch://store/user/arizzi/Nano01Fall17/ZH_HToBB_ZToLL_M120_13TeV_powheg_pythia8/RunIIFall17MiniAOD-94X-Nano01Fall17/180205_183348/0000/test94X_NANO_2.root"]
 #files=["root://cms-xrd-global.cern.ch://store/user/arizzi/NanoTestProd004/WminusH_HToBB_WToLNu_M125_13TeV_powheg_pythia8/NanoCrabProd004/171002_120520/0000/lzma_1.root"]
 #files=["root://cms-xrd-global.cern.ch://store/user/arizzi/NanoTestProd004/WplusH_HToBB_WToLNu_M125_13TeV_powheg_pythia8/NanoCrabProd004/171002_120552/0000/lzma_1.root"]
 #files=["root://cms-xrd-global.cern.ch://store/user/arizzi/NanoTestProd004/ZH_HToBB_ZToLL_M125_13TeV_powheg_pythia8/NanoCrabProd004/171002_120644/0000/lzma_1.root"]
@@ -48,7 +49,7 @@ mhtVHbb = lambda : mhtProducer( lambda j : j.pt > 30,
 
 #from PhysicsTools.NanoAODTools.postprocessing.framework.crabhelper import inputFiles,runsAndLumis
 #p=PostProcessor(".",files,selection.replace('\n',' '),"keep_and_drop.txt",[jetmetUncertainties(),vhbb()],provenance=True)
-p=PostProcessor(".",files,selection.replace('\n',' '),"keep_and_drop.txt",[puAutoWeight(),jetmetUncertaintiesAll(),mhtVHbb(),btagSFProducer("cmva"),vhbb()],provenance=True)
+p=PostProcessor(".",files,selection.replace('\n',' '),"keep_and_drop.txt",[puAutoWeight(),jetmetUncertainties2016All(),mhtVHbb(),btagSFProducer("2017","deepcsv"),vhbb2017()],provenance=True)
 #p=PostProcessor(".",files,selection.replace('\n',' '),"keep_and_drop.txt",[jetmetUncertaintiesAll(),mht(),btagSFProducer("cmva"),vhbb()],provenance=True)
 #p=PostProcessor(".",files,selection.replace('\n',' '),"keep_and_drop.txt",[jecUncertAll_cppOut(),jetmetUncertainties(),btagSFProducer("cmva"),vhbb()],provenance=True)
 #p=PostProcessor(".",files,selection.replace('\n',' '),"keep_and_drop.txt",[jecUncertAll_cppOut(),jetmetUncertaintiesAll(),btagSFProducer("cmva"),vhbb()],provenance=True)
