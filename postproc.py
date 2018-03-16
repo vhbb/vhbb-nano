@@ -38,12 +38,19 @@ filesTTbar= [
 'root://cms-xrd-global.cern.ch//store/group/cmst3/group/nanoAOD/NanoTestProd006/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISummer17MiniAOD-92X-NanoCrabProd006/171006_155430/0000/nanolzma_1.root',
 ]
 
+#selection='''(Sum$(Electron_pt > 20 && Electron_mvaSpring16GP_WP90) >= 2  ||
+# Sum$(Muon_pt > 20) >= 2 ||
+# Sum$(Electron_pt > 20 && Electron_mvaSpring16GP_WP80) >= 1   ||
+# Sum$(Muon_pt > 20 && Muon_tightId) >= 1 ||
+# (Sum$(Muon_pt > 20) == 0 && Sum$(Electron_pt > 20 && Electron_mvaSpring16GP_WP90) == 0 && MET_pt > 150 ) ) 
+# &&  Sum$((abs(Jet_eta)<2.5 && Jet_pt > 20 && Jet_jetId)) >= 2 
+#'''
 selection='''(Sum$(Electron_pt > 20 && Electron_mvaSpring16GP_WP90) >= 2  ||
  Sum$(Muon_pt > 20) >= 2 ||
  Sum$(Electron_pt > 20 && Electron_mvaSpring16GP_WP80) >= 1   ||
  Sum$(Muon_pt > 20 && Muon_tightId) >= 1 ||
  (Sum$(Muon_pt > 20) == 0 && Sum$(Electron_pt > 20 && Electron_mvaSpring16GP_WP90) == 0 && MET_pt > 150 ) ) 
- &&  Sum$((abs(Jet_eta)<2.5 && Jet_pt > 20 && Jet_jetId)) >= 2 
+ &&   ((Sum$((abs(Jet_eta)<2.5 && Jet_pt > 20 && Jet_jetId)) >= 2)||(Sum$((abs(FatJet_eta)<2.5 && FatJet_pt > 200 && FatJet_jetId)) >= 1)) 
 '''
 
 selectionALL='''Sum$(Electron_pt > 20 && Electron_mvaSpring16GP_WP90) >= 2  ||
@@ -66,9 +73,15 @@ mhtVHbb = lambda : mhtProducer( lambda j : j.pt > 30,
 from PhysicsTools.NanoAODTools.postprocessing.framework.crabhelper import inputFiles,runsAndLumis
 
 if isMC:
-    p=PostProcessor(".",inputFiles(),selection.replace('\n',' '),"keep_and_drop.txt",modules=[puWeight(),jetmetUncertainties2016All(),mhtVHbb(),btagSFProducer(era,btagger),VHbbProducer(isMC,era)],provenance=True,fwkJobReport=True,jsonInput=runsAndLumis())
+    if era == "2016":
+        p=PostProcessor(".",files,selection.replace('\n',' '),"keep_and_drop.txt",modules=[puWeight(),jetmetUncertainties2016All(),jetmetUncertainties2016AK8PuppiAll(),mhtVHbb(),btagSFProducer("2016","cmva"),vhbb2016()],provenance=True,fwkJobReport=True,jsonInput=runsAndLumis())
+    elif era == "2017":
+        p=PostProcessor(".",files,selection.replace('\n',' '),"keep_and_drop.txt",[puAutoWeight(),jetmetUncertainties2016All(),jetmetUncertainties2016AK8PuppiAll(),mhtVHbb(),btagSFProducer("2017","deepcsv"),vhbb2017()],provenance=True,fwkJobReport=True,jsonInput=runsAndLumis())
 else:
-    p=PostProcessor(".",inputFiles(),selection.replace('\n',' '),"keep_and_drop.txt",modules=[mhtVHbb(),VHbbProducer(isMC,era)],provenance=True,fwkJobReport=True,jsonInput=runsAndLumis())
+    if era == "2016":
+        p=PostProcessor(".",files,selection.replace('\n',' '),"keep_and_drop.txt",modules=[mhtVHbb(),vhbb2016_data()],provenance=True,fwkJobReport=True,jsonInput=runsAndLumis())
+    elif era == "2017":
+        p=PostProcessor(".",files,selection.replace('\n',' '),"keep_and_drop.txt",modules=[mhtVHbb(),vhbb2017_data()],provenance=True,fwkJobReport=True,jsonInput=runsAndLumis())
 p.run()
 
 print "DONE"

@@ -5,6 +5,7 @@ ROOT.PyConfig.IgnoreCommandLineOptions = True
 
 from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import PostProcessor
 
+from PhysicsTools.NanoAODTools.postprocessing.analysis.higgs.vhbb.VHbbBoostedProducer import *
 from PhysicsTools.NanoAODTools.postprocessing.analysis.higgs.vhbb.VHbbProducer import *
 from PhysicsTools.NanoAODTools.postprocessing.modules.btv.btagSFProducer import *
 from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jecUncertainties import *
@@ -33,7 +34,7 @@ selection='''(Sum$(Electron_pt > 20 && Electron_mvaSpring16GP_WP90) >= 2  ||
  Sum$(Electron_pt > 20 && Electron_mvaSpring16GP_WP80) >= 1   ||
  Sum$(Muon_pt > 20 && Muon_tightId) >= 1 ||
  (Sum$(Muon_pt > 20) == 0 && Sum$(Electron_pt > 20 && Electron_mvaSpring16GP_WP90) == 0 && MET_pt > 150 ) ) 
- &&  Sum$((abs(Jet_eta)<2.5 && Jet_pt > 20 && Jet_jetId)) >= 2 && Entry$ < 1000 
+ &&   ((Sum$((abs(Jet_eta)<2.5 && Jet_pt > 20 && Jet_jetId)) >= 2)||(Sum$((abs(FatJet_eta)<2.5 && FatJet_pt > 200 && FatJet_jetId)) >= 1)) && Entry$ < 1000 
 '''
 
 selectionALL='''Sum$(Electron_pt > 20 && Electron_mvaSpring16GP_WP90) >= 2  ||
@@ -43,13 +44,18 @@ Sum$(Jet_pt *(abs(Jet_eta)<2.5 && Jet_pt > 20 && Jet_jetId)) > 160  ||
 MET_pt > 100  || Sum$(Muon_pt > 20 && Muon_tightId) >= 1
 '''
 
+alljecs=["AbsoluteStat","AbsoluteScale","AbsoluteFlavMap","AbsoluteMPFBias","Fragmentation","SinglePionECAL","SinglePionHCAL","FlavorQCD","TimePtEta","RelativeJEREC1",
+         "RelativeJEREC2","RelativeJERHF","RelativePtBB","RelativePtEC1","RelativePtEC2","RelativePtHF","RelativeBal","RelativeSample","RelativeFSR","RelativeStatFSR","RelativeStatEC","RelativeStatHF","PileUpDataMC","PileUpPtRef","PileUpPtBB","PileUpPtEC1","PileUpPtEC2","PileUpPtHF","PileUpMuZero","PileUpEnvelope","SubTotalPileUp","SubTotalRelative","SubTotalPt","SubTotalScale","SubTotalAbsolute","SubTotalMC","Total","TotalNoFlavor","TotalNoTime","TotalNoFlavorNoTime","FlavorZJet","FlavorPhotonJet",
+         "FlavorPureGluon","FlavorPureQuark","FlavorPureCharm","FlavorPureBottom","TimeRunB","TimeRunC","TimeRunD","TimeRunE","TimeRunF","CorrelationGroupMPFInSitu",
+         "CorrelationGroupIntercalibration","CorrelationGroupbJES","CorrelationGroupFlavor","CorrelationGroupUncorrelated"]
+
 mhtVHbb = lambda : mhtProducer( lambda j : j.pt > 30,
                             lambda mu : mu.pt > 5 and mu.pfRelIso04_all < 0.4,
                             lambda el : el.pt > 5 and el.pfRelIso03_all < 0.4 )
 
 #from PhysicsTools.NanoAODTools.postprocessing.framework.crabhelper import inputFiles,runsAndLumis
 #p=PostProcessor(".",files,selection.replace('\n',' '),"keep_and_drop.txt",[jetmetUncertainties(),vhbb()],provenance=True)
-p=PostProcessor(".",files,selection.replace('\n',' '),"keep_and_drop.txt",[puAutoWeight(),jetmetUncertainties2016All(),mhtVHbb(),btagSFProducer("2017","deepcsv"),vhbb2017()],provenance=True)
+p=PostProcessor(".",files,selection.replace('\n',' '),"keep_and_drop.txt",[puAutoWeight(),jetmetUncertainties2016All(),jetmetUncertainties2017AK8PuppiAll(),mhtVHbb(),btagSFProducer("2017","deepcsv"),vhbb2017()],provenance=True)
 #p=PostProcessor(".",files,selection.replace('\n',' '),"keep_and_drop.txt",[jetmetUncertaintiesAll(),mht(),btagSFProducer("cmva"),vhbb()],provenance=True)
 #p=PostProcessor(".",files,selection.replace('\n',' '),"keep_and_drop.txt",[jecUncertAll_cppOut(),jetmetUncertainties(),btagSFProducer("cmva"),vhbb()],provenance=True)
 #p=PostProcessor(".",files,selection.replace('\n',' '),"keep_and_drop.txt",[jecUncertAll_cppOut(),jetmetUncertaintiesAll(),btagSFProducer("cmva"),vhbb()],provenance=True)

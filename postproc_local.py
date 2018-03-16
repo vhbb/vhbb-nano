@@ -28,7 +28,8 @@ if era == "2016":
 
 #files=["root://cms-xrd-global.cern.ch//store/user/arizzi/NanoTestProd006/QCD_Pt-80to120_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8/RunIISummer17MiniAOD-92X-NanoCrabProd006/171006_144159/0000/nanolzma_1.root"]
 #files=["lzma_1.root"]
-files=["root://cms-xrd-global.cern.ch://store/user/arizzi/NanoCrabProdXmas/WH_HToBB_WToLNu_M125_13TeV_amcatnloFXFX_madspin_pythia8/NanoCrabXmasRunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asym___heIV_v6-v1__215/171221_111154/0000/nano_1.root"]
+#files=["root://cms-xrd-global.cern.ch://store/user/arizzi/NanoCrabProdXmas/WH_HToBB_WToLNu_M125_13TeV_amcatnloFXFX_madspin_pythia8/NanoCrabXmasRunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asym___heIV_v6-v1__215/171221_111154/0000/nano_1.root"]
+files=["root://cms-xrd-global.cern.ch://store/user/arizzi/Nano01Fall17/ZH_HToBB_ZToLL_M120_13TeV_powheg_pythia8/RunIIFall17MiniAOD-94X-Nano01Fall17/180205_183348/0000/test94X_NANO_1.root"]
 #files=["root://cms-xrd-global.cern.ch://store/user/arizzi/NanoTestProd004/WminusH_HToBB_WToLNu_M125_13TeV_powheg_pythia8/NanoCrabProd004/171002_120520/0000/lzma_1.root"]
 #files=["root://cms-xrd-global.cern.ch://store/user/arizzi/NanoTestProd004/WplusH_HToBB_WToLNu_M125_13TeV_powheg_pythia8/NanoCrabProd004/171002_120552/0000/lzma_1.root"]
 #files=["root://cms-xrd-global.cern.ch://store/user/arizzi/NanoTestProd004/ZH_HToBB_ZToLL_M125_13TeV_powheg_pythia8/NanoCrabProd004/171002_120644/0000/lzma_1.root"]
@@ -38,12 +39,19 @@ filesTTbar= [
 'root://cms-xrd-global.cern.ch//store/group/cmst3/group/nanoAOD/NanoTestProd006/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISummer17MiniAOD-92X-NanoCrabProd006/171006_155430/0000/nanolzma_1.root',
 ]
 
+#selection='''(Sum$(Electron_pt > 20 && Electron_mvaSpring16GP_WP90) >= 2  ||
+# Sum$(Muon_pt > 20) >= 2 ||
+# Sum$(Electron_pt > 20 && Electron_mvaSpring16GP_WP80) >= 1   ||
+# Sum$(Muon_pt > 20 && Muon_tightId) >= 1 ||
+# (Sum$(Muon_pt > 20) == 0 && Sum$(Electron_pt > 20 && Electron_mvaSpring16GP_WP90) == 0 && MET_pt > 150 ) ) 
+# &&  Sum$((abs(Jet_eta)<2.5 && Jet_pt > 20 && Jet_jetId)) >= 2 && Entry$ < 1000 
+#'''
 selection='''(Sum$(Electron_pt > 20 && Electron_mvaSpring16GP_WP90) >= 2  ||
  Sum$(Muon_pt > 20) >= 2 ||
  Sum$(Electron_pt > 20 && Electron_mvaSpring16GP_WP80) >= 1   ||
  Sum$(Muon_pt > 20 && Muon_tightId) >= 1 ||
  (Sum$(Muon_pt > 20) == 0 && Sum$(Electron_pt > 20 && Electron_mvaSpring16GP_WP90) == 0 && MET_pt > 150 ) ) 
- &&  Sum$((abs(Jet_eta)<2.5 && Jet_pt > 20 && Jet_jetId)) >= 2 && Entry$ < 1000 
+ &&   ((Sum$((abs(Jet_eta)<2.5 && Jet_pt > 20 && Jet_jetId)) >= 2)||(Sum$((abs(FatJet_eta)<2.5 && FatJet_pt > 200 && FatJet_jetId)) >= 1)) && Entry$ < 1000 
 '''
 
 selectionALL='''Sum$(Electron_pt > 20 && Electron_mvaSpring16GP_WP90) >= 2  ||
@@ -64,9 +72,15 @@ mhtVHbb = lambda : mhtProducer( lambda j : j.pt > 30,
 
 
 if isMC:
-    p=PostProcessor(".",files,selection.replace('\n',' '),"keep_and_drop.txt",modules=[puWeight(),jetmetUncertainties2016All(),mhtVHbb(),btagSFProducer(era,btagger),VHbbProducer(isMC,era)],provenance=True)
+    if era == "2016":
+        p=PostProcessor(".",files,selection.replace('\n',' '),"keep_and_drop.txt",modules=[puWeight(),jetmetUncertainties2016All(),jetmetUncertainties2016AK8PuppiAll(),mhtVHbb(),btagSFProducer("2016","cmva"),vhbb2016()],provenance=True)
+    elif era == "2017":
+        p=PostProcessor(".",files,selection.replace('\n',' '),"keep_and_drop.txt",[puAutoWeight(),jetmetUncertainties2016All(),jetmetUncertainties2016AK8PuppiAll(),mhtVHbb(),btagSFProducer("2017","deepcsv"),vhbb2017()],provenance=True)
 else:
-    p=PostProcessor(".",files,selection.replace('\n',' '),"keep_and_drop.txt",modules=[mhtVHbb(),VHbbProducer(isMC,era)],provenance=True)
+    if era == "2016":
+        p=PostProcessor(".",files,selection.replace('\n',' '),"keep_and_drop.txt",modules=[mhtVHbb(),vhbb2016_data()],provenance=True)
+    elif era == "2017":
+        p=PostProcessor(".",files,selection.replace('\n',' '),"keep_and_drop.txt",modules=[mhtVHbb(),vhbb2017_data()],provenance=True)
 p.run()
 
 print "DONE"
