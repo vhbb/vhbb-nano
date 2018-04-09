@@ -11,7 +11,7 @@ config.General.transferLogs = True
 config.JobType.pluginName = 'Analysis'
 config.JobType.psetName = 'PSet.py'
 config.JobType.scriptExe = 'crab_script.sh'
-config.JobType.scriptArgs = ['isMC=1','era=2017','dataRun=""']
+config.JobType.scriptArgs = ['isMC=0','era=2017','dataRun=""']
 config.JobType.inputFiles = ['../keep_and_drop.txt','../postproc.py','../../../../../../scripts/haddnano.py'] #hadd nano will not be needed once nano tools are in cmssw
 config.JobType.sendPythonFolder	 = True
 
@@ -31,6 +31,7 @@ config.Site.storageSite = 'T2_CH_CERN'
 
 #sites=['T2_IT_Legnaro','T2_IT_Bari','T2_IT_Pisa','T2_CH_CERN']
 sites=['T2_CH_CERN']
+runs = ['B','C','D','E','F']
 
 if __name__ == '__main__':
     f=open(sys.argv[1]) 
@@ -39,17 +40,20 @@ if __name__ == '__main__':
     from CRABAPI.RawCommand import crabCommand
     n=79
     for dataset in content :
-	#site=sites[n%4]
-	#config.Site.storageSite=site
-	#if site=='T2_CH_CERN' :
-	#	config.Data.outLFNDirBase=  '/store/group/cmst3/group/nanoAOD/NanoTestProd006'
-	#else :
-   #		config.Data.outLFNDirBase = '/store/user/%s/NanoTestProd006/' % (getUsernameFromSiteDB())
+        for run in runs:
+		#site=sites[n%4]
+		#config.Site.storageSite=site
+		#if site=='T2_CH_CERN' :
+		#	config.Data.outLFNDirBase=  '/store/group/cmst3/group/nanoAOD/NanoTestProd006'
+		#else :
+   #			config.Data.outLFNDirBase = '/store/user/%s/NanoTestProd006/' % (getUsernameFromSiteDB())
 
-        config.Data.inputDataset = dataset
-	config.Data.unitsPerJob = 2000000
-	n+=1
-	nnn="%s"%n
-        config.General.requestName = "VHbbPostNano2017_V2_"+dataset.split('/')[1][:30]+dataset.split('/')[2][:30]+nnn
-        config.Data.outputDatasetTag = dataset.split('/')[2][:30]+nnn
-        crabCommand('submit', config = config)
+                config.JobType.scriptArgs = ['isMC=0','era=2017','dataRun=%s' % run]
+       		config.Data.inputDataset = dataset
+		config.Data.unitsPerJob = 2000000
+                config.Data.lumiMask = "Run2017%s.txt" % run
+		n+=1
+		nnn="%s"%n
+                config.General.requestName = "VHbbPostNano2017_V2_March18_"+dataset.split('/')[1][:30]+dataset.split('/')[2][:30]+"Run2017"+run+nnn
+                config.Data.outputDatasetTag = dataset.split('/')[2][:30]+"Run2017"+run+nnn
+                crabCommand('submit', config = config)

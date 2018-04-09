@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import os, sys
 import ROOT
+import argparse
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 
 from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import PostProcessor
@@ -9,22 +10,43 @@ from PhysicsTools.NanoAODTools.postprocessing.analysis.higgs.vhbb.VHbbProducer i
 from PhysicsTools.NanoAODTools.postprocessing.modules.btv.btagSFProducer import *
 from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jecUncertainties import *
 from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetmetUncertainties import *
+from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetRecalib import *
 from  PhysicsTools.NanoAODTools.postprocessing.modules.jme.mht import *
 #from  PhysicsTools.NanoAODTools.postprocessing.examples.puWeightProducer import *
 from PhysicsTools.NanoAODTools.postprocessing.modules.common.puWeightProducer import *
 
-isMC = 0
-era = "2017"
-if len(sys.argv) > 1:
-    isMC = bool(sys.argv[1])
-if len(sys.argv) > 2:
-    era = sys.argv[2]
-if era!="2016" and era!="2017":
-    print "Run era must be 2016 or 2017, exiting.."
-    sys.exit(1)
-btagger = "deepcsv"
-if era == "2016":
-    btagger = "cmva"
+print "args are: ",sys.argv
+
+isMC = True
+era = "2016"
+dataRun = "X"
+#if len(sys.argv) > 2:
+#    if float(sys.argv[2]) < 0.:
+#        isMC = False
+#if len(sys.argv) > 3:
+#    era = sys.argv[3]
+#if era!="2016" and era!="2017":
+#    print "Run era must be 2016 or 2017, exiting.."
+#    sys.exit(1)
+#btagger = "deepcsv"
+#if era == "2016":
+#    btagger = "cmva"
+dataRun = ""
+#if len(sys.argv) > 4:
+#    dataRun = sys.argv[4]
+
+parser = argparse.ArgumentParser("")
+parser.add_argument('-test', '--test', type=int, default=1, help="")
+parser.add_argument('-isMC', '--isMC', type=int, default=1, help="")
+parser.add_argument('-era', '--era', type=str, default="2017", help="")
+parser.add_argument('-dataRun', '--dataRun', type=str, default="X", help="")
+args = parser.parse_args()
+print "args = ",args
+isMC = args.isMC
+era = args.era
+dataRun = args.dataRun
+print "isMC = ",isMC,"era = ",era, "dataRun = ",dataRun
+
 
 #files=["root://cms-xrd-global.cern.ch//store/user/arizzi/NanoTestProd006/QCD_Pt-80to120_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8/RunIISummer17MiniAOD-92X-NanoCrabProd006/171006_144159/0000/nanolzma_1.root"]
 #files=["lzma_1.root"]
@@ -74,14 +96,23 @@ from PhysicsTools.NanoAODTools.postprocessing.framework.crabhelper import inputF
 
 if isMC:
     if era == "2016":
-        p=PostProcessor(".",files,selection.replace('\n',' '),"keep_and_drop.txt",modules=[puWeight(),jetmetUncertainties2016All(),jetmetUncertainties2016AK8PuppiAll(),mhtVHbb(),btagSFProducer("2016","cmva"),vhbb2016()],provenance=True,fwkJobReport=True,jsonInput=runsAndLumis())
+        p=PostProcessor(".",inputFiles(),selection.replace('\n',' '),"keep_and_drop.txt",modules=[puWeight(),jetmetUncertainties2016All(),jetmetUncertainties2016AK8PuppiAll(),mhtVHbb(),btagSFProducer("2016","cmva"),vhbb2016()],provenance=True,fwkJobReport=True,jsonInput=runsAndLumis())
     elif era == "2017":
-        p=PostProcessor(".",files,selection.replace('\n',' '),"keep_and_drop.txt",[puAutoWeight(),jetmetUncertainties2016All(),jetmetUncertainties2016AK8PuppiAll(),mhtVHbb(),btagSFProducer("2017","deepcsv"),vhbb2017()],provenance=True,fwkJobReport=True,jsonInput=runsAndLumis())
+        p=PostProcessor(".",inputFiles(),selection.replace('\n',' '),"keep_and_drop.txt",[puAutoWeight(),jetmetUncertainties2017All(),jetmetUncertainties2016AK8PuppiAll(),mhtVHbb(),btagSFProducer("2017","deepcsv"),vhbb2017()],provenance=True,fwkJobReport=True,jsonInput=runsAndLumis())
 else:
     if era == "2016":
-        p=PostProcessor(".",files,selection.replace('\n',' '),"keep_and_drop.txt",modules=[mhtVHbb(),vhbb2016_data()],provenance=True,fwkJobReport=True,jsonInput=runsAndLumis())
+        p=PostProcessor(".",inputFiles(),selection.replace('\n',' '),"keep_and_drop.txt",modules=[mhtVHbb(),vhbb2016_data()],provenance=True,fwkJobReport=True,jsonInput=runsAndLumis())
     elif era == "2017":
-        p=PostProcessor(".",files,selection.replace('\n',' '),"keep_and_drop.txt",modules=[mhtVHbb(),vhbb2017_data()],provenance=True,fwkJobReport=True,jsonInput=runsAndLumis())
+        if dataRun == "B":
+            p=PostProcessor(".",inputFiles(),selection.replace('\n',' '),"keep_and_drop.txt",modules=[jetRecalib2017B(),mhtVHbb(),vhbb2017_data()],provenance=True,fwkJobReport=True,jsonInput=runsAndLumis())
+        if dataRun == "C":
+            p=PostProcessor(".",inputFiles(),selection.replace('\n',' '),"keep_and_drop.txt",modules=[jetRecalib2017C(),mhtVHbb(),vhbb2017_data()],provenance=True,fwkJobReport=True,jsonInput=runsAndLumis())
+        if dataRun == "D":
+            p=PostProcessor(".",inputFiles(),selection.replace('\n',' '),"keep_and_drop.txt",modules=[jetRecalib2017D(),mhtVHbb(),vhbb2017_data()],provenance=True,fwkJobReport=True,jsonInput=runsAndLumis())
+        if dataRun == "E":
+            p=PostProcessor(".",inputFiles(),selection.replace('\n',' '),"keep_and_drop.txt",modules=[jetRecalib2017E(),mhtVHbb(),vhbb2017_data()],provenance=True,fwkJobReport=True,jsonInput=runsAndLumis())
+        if dataRun == "F":
+            p=PostProcessor(".",inputFiles(),selection.replace('\n',' '),"keep_and_drop.txt",modules=[jetRecalib2017F(),mhtVHbb(),vhbb2017_data()],provenance=True,fwkJobReport=True,jsonInput=runsAndLumis())
 p.run()
 
 print "DONE"

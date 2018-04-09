@@ -91,7 +91,7 @@ class VHbbProducer(Module):
     def msoftdrop(self, jet, isMC):
         ## the MC has JER smearing applied which has output branch Jet_pt_smeared which should be compared 
         ## with data branch Jet_pt. This essentially aliases the two branches to one common jet pt variable.
-        if isMC:
+        if isMC and self.era!="2016":
             return jet.msoftdrop_nom
         else:
             return jet.msoftdrop
@@ -120,7 +120,8 @@ class VHbbProducer(Module):
         sa = Collection(event, "SoftActivityJet")
         fatjets = list(Collection(event, "FatJet"))
         subjets = Collection(event, "SubJet")
-        genParticles = Collection(event, "GenPart")
+        if self.isMC:
+            genParticles = Collection(event, "GenPart")
 
         metPt,metPhi = self.met(met,self.isMC)
         self.out.fillBranch("MET_Pt",metPt)
@@ -341,70 +342,77 @@ class VHbbProducer(Module):
         FatJet_ZProducts=[False]*len(fatjets)
         FatJet_WProducts=[False]*len(fatjets)
 
-        #do flavour composition here
-        for fatjet in fatjets:
+        if self.isMC:
+            #do flavour composition here
+            for fatjet in fatjets:
 
-            numBHadrons=0
-            numCHadrons=0
-            H_decay=False
-            W_decay=False
-            Z_decay=False
+                numBHadrons=0
+                numCHadrons=0
+                H_decay=False
+                W_decay=False
+                Z_decay=False
 
-            for genP in genParticles:
-                if deltaR(fatjet,genP)<0.8:
-                    id_at=max((abs(genP.pdgId)/1000) % 10,(abs(genP.pdgId)/100) % 10)
+                for genP in genParticles:
+                    if deltaR(fatjet,genP)<0.8:
+                        id_at=max((abs(genP.pdgId)/1000) % 10,(abs(genP.pdgId)/100) % 10)
 
-                    if (id_at==4 or id_at==5):
-                        lastinChain=True
-                        if genP.genPartIdxMother<0: id_mother=-1
-                        else: id_mother=max((abs(genParticles[genP.genPartIdxMother].pdgId)/1000) % 10,(abs(genParticles[genP.genPartIdxMother].pdgId)/100) % 10)
+                        if (id_at==4 or id_at==5):
+                            lastinChain=True
+                            if genP.genPartIdxMother<0: id_mother=-1
+                            else: id_mother=max((abs(genParticles[genP.genPartIdxMother].pdgId)/1000) % 10,(abs(genParticles[genP.genPartIdxMother].pdgId)/100) % 10)
 
-                        if (id_mother==4 or id_mother==5):
-                            lastinChain=False
+                            if (id_mother==4 or id_mother==5):
+                                lastinChain=False
 
-                        if lastinChain:
-                            if id_at==4: numCHadrons=numCHadrons+1
-                            if id_at==5: numBHadrons=numBHadrons+1
+                            if lastinChain:
+                                if id_at==4: numCHadrons=numCHadrons+1
+                                if id_at==5: numBHadrons=numBHadrons+1
 
-                            #subjet matching?
+                                #subjet matching?
 
-                            #s1=fatjet.subJetIdx1
-                            #s2=fatjet.subJetIdx2
+                                #s1=fatjet.subJetIdx1
+                                #s2=fatjet.subJetIdx2
 
-                            #if s1>-1:
-                                #if deltaR(subjets[s1],genP)<0.3: print "it's in subjet 1"
-                            #if s2>-1:
-                                #if deltaR(subjets[s2],genP)<0.3: print "it's in subjet 2"
-                    if (abs(genP.pdgId)==24): W_decay=True
-                    if (genP.pdgId==23): Z_decay=True
-                    if (genP.pdgId==25): H_decay=True
+                                #if s1>-1:
+                                    #if deltaR(subjets[s1],genP)<0.3: print "it's in subjet 1"
+                                #if s2>-1:
+                                    #if deltaR(subjets[s2],genP)<0.3: print "it's in subjet 2"
+                        if (abs(genP.pdgId)==24): W_decay=True
+                        if (genP.pdgId==23): Z_decay=True
+                        if (genP.pdgId==25): H_decay=True
 
-                    #status flags: maybe we want ot check a few bits in the status before assigning True?
+                        #status flags: maybe we want ot check a few bits in the status before assigning True?
 
-                    #if (genP.pdgId==25): 
-                        #print "Higgs boson",genP.pdgId, genP.status, genP.statusFlags,genP.genPartIdxMother
-                        #for bit in range(15):
-                            #if ((genP.statusFlags>>bit)&1) : print self.statusFlags_dict(bit)
+                        #if (genP.pdgId==25): 
+                            #print "Higgs boson",genP.pdgId, genP.status, genP.statusFlags,genP.genPartIdxMother
+                            #for bit in range(15):
+                                #if ((genP.statusFlags>>bit)&1) : print self.statusFlags_dict(bit)
 
-            if numBHadrons>=2:
-             FatJet_FlavourComposition[fatjets.index(fatjet)]=55
-            elif numBHadrons==1 and numCHadrons>=1:
-             FatJet_FlavourComposition[fatjets.index(fatjet)]=54
-            elif numBHadrons==1 and numCHadrons==0:
-             FatJet_FlavourComposition[fatjets.index(fatjet)]=5
-            elif numBHadrons==0 and numCHadrons==2:
-             FatJet_FlavourComposition[fatjets.index(fatjet)]=44
-            elif numBHadrons==0 and numCHadrons==1:
-             FatJet_FlavourComposition[fatjets.index(fatjet)]=4
+                if numBHadrons>=2:
+                 FatJet_FlavourComposition[fatjets.index(fatjet)]=55
+                elif numBHadrons==1 and numCHadrons>=1:
+                 FatJet_FlavourComposition[fatjets.index(fatjet)]=54
+                elif numBHadrons==1 and numCHadrons==0:
+                 FatJet_FlavourComposition[fatjets.index(fatjet)]=5
+                elif numBHadrons==0 and numCHadrons==2:
+                 FatJet_FlavourComposition[fatjets.index(fatjet)]=44
+                elif numBHadrons==0 and numCHadrons==1:
+                 FatJet_FlavourComposition[fatjets.index(fatjet)]=4
 
-            FatJet_HiggsProducts[fatjets.index(fatjet)]=H_decay
-            FatJet_ZProducts[fatjets.index(fatjet)]=Z_decay
-            FatJet_WProducts[fatjets.index(fatjet)]=W_decay
+                FatJet_HiggsProducts[fatjets.index(fatjet)]=H_decay
+                FatJet_ZProducts[fatjets.index(fatjet)]=Z_decay
+                FatJet_WProducts[fatjets.index(fatjet)]=W_decay
 
-        self.out.fillBranch("FatJet_FlavourComposition",FatJet_FlavourComposition)
-        self.out.fillBranch("FatJet_HiggsProducts",FatJet_HiggsProducts)
-        self.out.fillBranch("FatJet_ZProducts",FatJet_ZProducts)
-        self.out.fillBranch("FatJet_WProducts",FatJet_WProducts)
+            self.out.fillBranch("FatJet_FlavourComposition",FatJet_FlavourComposition)
+            self.out.fillBranch("FatJet_HiggsProducts",FatJet_HiggsProducts)
+            self.out.fillBranch("FatJet_ZProducts",FatJet_ZProducts)
+            self.out.fillBranch("FatJet_WProducts",FatJet_WProducts)
+        else:
+            # data event, fill with default values
+            self.out.fillBranch("FatJet_FlavourComposition",FatJet_FlavourComposition)
+            self.out.fillBranch("FatJet_HiggsProducts",FatJet_HiggsProducts)
+            self.out.fillBranch("FatJet_ZProducts",FatJet_ZProducts)
+            self.out.fillBranch("FatJet_WProducts",FatJet_WProducts)
 
         return True
                 
