@@ -5,6 +5,7 @@ config = config()
 config.General.requestName = 'VHbbPostNano2017_V2'
 #config.General.workArea = 'crab_projects'
 config.General.workArea = '/afs/cern.ch/work/s/scoopers/private/crabspace/crab_projects/2017/V2/'
+
 config.General.transferOutputs = True
 config.General.transferLogs = True
 
