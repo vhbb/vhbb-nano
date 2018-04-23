@@ -34,6 +34,10 @@ class VHbbProducer(Module):
         self.out.branch("HCMVA_eta",  "F");
         self.out.branch("HCMVA_phi",  "F");
         self.out.branch("HCMVA_mass",  "F");
+        self.out.branch("HFSR_pt",  "F");
+        self.out.branch("HFSR_eta",  "F");
+        self.out.branch("HFSR_phi",  "F");
+        self.out.branch("HFSR_mass",  "F");
         self.out.branch("SA_Ht",  "F");
         self.out.branch("SA5",  "F");
         self.out.branch("Jet_Pt", "F", 1, "nJet");
@@ -260,6 +264,26 @@ class VHbbProducer(Module):
             self.out.fillBranch("HCMVA_phi",hbbcmva.Phi())
             self.out.fillBranch("HCMVA_eta",hbbcmva.Eta())
             self.out.fillBranch("HCMVA_mass",hbbcmva.M())
+
+            ## try to recover FSR
+            jetsFromFSR = []
+            for ijet in xrange(len(jets)):
+                if ijet == hJidx[0] or ijet == hJidx[1]: continue
+                jet = jets[ijet]
+                if jet.Pt>15 and abs(jet.eta)<3.0 and jet.puId>0 and jet.jetId>0 and jet.lepFilter:
+                   if min(deltaR(jet,jets[hJidx[0]]),deltaR(jet,jets[hJidx[1]])) < 0.8:
+                       jetsFromFSR.append(jet)
+            HFSR = hbb
+            for jet in jetsFromFSR:
+                fsrJetToAdd = ROOT.TLorentzVector()
+                fsrJetToAdd.SetPtEtaPhiM(jet.Pt,jet.eta,jet.phi,jet.mass)
+                HFSR = HFSR + fsrJetToAdd
+            self.out.fillBranch("HFSR_pt",HFSR.Pt())
+            self.out.fillBranch("HFSR_phi",HFSR.Phi())
+            self.out.fillBranch("HFSR_eta",HFSR.Eta())
+            self.out.fillBranch("HFSR_mass",HFSR.M())
+            
+
 
             ## Compute soft activity vetoing Higgs jets
             #find signal footprint
