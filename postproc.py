@@ -36,7 +36,7 @@ dataRun = ""
 #    dataRun = sys.argv[4]
 
 parser = argparse.ArgumentParser("")
-parser.add_argument('-test', '--test', type=int, default=1, help="")
+parser.add_argument('-jobNum', '--jobNum', type=int, default=1, help="")
 parser.add_argument('-isMC', '--isMC', type=int, default=1, help="")
 parser.add_argument('-era', '--era', type=str, default="2017", help="")
 parser.add_argument('-dataRun', '--dataRun', type=str, default="X", help="")
