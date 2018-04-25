@@ -309,6 +309,10 @@ class VHbbProducer(Module):
             self.out.fillBranch("HCMVA_phi",-1)
             self.out.fillBranch("HCMVA_eta",-1)
             self.out.fillBranch("HCMVA_mass",-1)
+            self.out.fillBranch("HFSR_pt",-1)
+            self.out.fillBranch("HFSR_phi",-1)
+            self.out.fillBranch("HFSR_eta",-1)
+            self.out.fillBranch("HFSR_mass",-1)
             self.out.fillBranch("SA_Ht",-1)
             self.out.fillBranch("SA5",-1)
    
