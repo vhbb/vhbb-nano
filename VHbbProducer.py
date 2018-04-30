@@ -270,7 +270,7 @@ class VHbbProducer(Module):
             for ijet in xrange(len(jets)):
                 if ijet == hJidx[0] or ijet == hJidx[1]: continue
                 jet = jets[ijet]
-                if jet.Pt>15 and abs(jet.eta)<3.0 and jet.puId>0 and jet.jetId>0 and jet.lepFilter:
+                if jet.Pt>20 and abs(jet.eta)<3.0 and jet.puId>0 and jet.jetId>0 and jet.lepFilter:
                    if min(deltaR(jet,jets[hJidx[0]]),deltaR(jet,jets[hJidx[1]])) < 0.8:
                        jetsFromFSR.append(jet)
             HFSR = hbb
