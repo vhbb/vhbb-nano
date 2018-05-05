@@ -121,6 +121,8 @@ else:
             p=PostProcessor(".",files,selection.replace('\n',' '),"keep_and_drop.txt",modules=[jetRecalib2017E(),mhtVHbb(),vhbb2017_data()],provenance=True)
         if dataRun == "F":
             p=PostProcessor(".",files,selection.replace('\n',' '),"keep_and_drop.txt",modules=[jetRecalib2017F(),mhtVHbb(),vhbb2017_data()],provenance=True)
+        else:
+            p=PostProcessor(".",files,selection.replace('\n',' '),"keep_and_drop.txt",modules=[mhtVHbb(),vhbb2017_data()],provenance=True)
 p.run()
 
 print "DONE"

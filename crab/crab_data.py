@@ -2,8 +2,8 @@ import sys
 from CRABClient.UserUtilities import config, getUsernameFromSiteDB
 config = config()
 
-config.General.requestName = 'VHbbPostNano2016_V2'
-config.General.workArea = '/afs/cern.ch/work/s/scoopers/private/crabspace/crab_projects/2016/V2/'
+config.General.requestName = 'VHbbPostNano2016_V3'
+config.General.workArea = '/afs/cern.ch/work/s/scoopers/private/crabspace/crab_projects/2016/V3/'
 #config.General.workArea = 'crab_projects'
 config.General.transferOutputs = True
 config.General.transferLogs = True
@@ -20,10 +20,10 @@ config.Data.inputDataset = '/TT_TuneCUETP8M2T4_13TeV-powheg-pythia8/RunIISummer1
 config.Data.inputDBS = 'global'
 config.Data.splitting = 'EventAwareLumiBased'
 #config.Data.outLFNDirBase = '/store/user/%s/VHbbPostNano2016_V1_dataRerun/' % (getUsernameFromSiteDB())
-config.Data.outLFNDirBase = '/store/group/phys_higgs/hbb/ntuples/VHbbPostNano/2016/V2/'
+config.Data.outLFNDirBase = '/store/group/phys_higgs/hbb/ntuples/VHbbPostNano/2016/V3/'
 config.Data.publication = True
 #config.Data.outputDatasetTag = 'RunIISummer17MiniAOD-92X-NanoCrabProd006'
-config.Data.outputDatasetTag = 'RunIISummer16MiniAODv2-PUMoriond17-80X-VHbbPostNano2016_V2'
+config.Data.outputDatasetTag = 'RunIISummer16MiniAODv2-PUMoriond17-80X-VHbbPostNano2016_V3'
 config.Data.allowNonValidInputDataset = True
 config.Data.lumiMask = 'https://cms-service-dqm.web.cern.ch/cms-service-dqm/CAF/certification/Collisions16/13TeV/Cert_271036-284044_13TeV_PromptReco_Collisions16_JSON.txt'
 config.Site.storageSite = 'T2_CH_CERN'
@@ -49,6 +49,6 @@ if __name__ == '__main__':
 	config.Data.unitsPerJob = 2000000
 	n+=1
 	nnn="%s"%n
-        config.General.requestName = "VHbbPostNano2016_V2_March18_"+dataset.split('/')[1][:30]+dataset.split('/')[2][:30]+nnn
+        config.General.requestName = "VHbbPostNano2016_V3TEST_May3_"+dataset.split('/')[1][:30]+dataset.split('/')[2][:30]+nnn
         config.Data.outputDatasetTag = dataset.split('/')[2][:30]+nnn
         crabCommand('submit', config = config)

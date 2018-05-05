@@ -99,7 +99,7 @@ from PhysicsTools.NanoAODTools.postprocessing.framework.crabhelper import inputF
 
 if isMC:
     if era == "2016":
-        p=PostProcessor(".",inputFiles(),selection.replace('\n',' '),"keep_and_drop.txt",modules=[puWeight(),jetmetUncertainties2016All(),jetmetUncertainties2016AK8PuppiAll(),muonScaleRes2016(),mhtVHbb(),btagSFProducer("2016","cmva"),vhbb2016()],provenance=True,fwkJobReport=True,jsonInput=runsAndLumis())
+        p=PostProcessor(".",inputFiles(),selection.replace('\n',' '),"keep_and_drop.txt",modules=[puWeight(),jetmetUncertainties2016All(),jetmetUncertainties2016AK8PuppiAllNoGroom(),muonScaleRes2016(),mhtVHbb(),btagSFProducer("2016","cmva"),vhbb2016()],provenance=True,fwkJobReport=True,jsonInput=runsAndLumis())
     elif era == "2017":
         p=PostProcessor(".",inputFiles(),selection.replace('\n',' '),"keep_and_drop.txt",[puAutoWeight(),jetmetUncertainties2017All(),jetmetUncertainties2017AK8PuppiAll(),muonScaleRes2017(),mhtVHbb(),btagSFProducer("2017","deepcsv"),vhbb2017()],provenance=True,fwkJobReport=True,jsonInput=runsAndLumis())
 else:
@@ -116,6 +116,8 @@ else:
             p=PostProcessor(".",inputFiles(),selection.replace('\n',' '),"keep_and_drop.txt",modules=[jetRecalib2017E(),mhtVHbb(),vhbb2017_data()],provenance=True,fwkJobReport=True,jsonInput=runsAndLumis())
         if dataRun == "F":
             p=PostProcessor(".",inputFiles(),selection.replace('\n',' '),"keep_and_drop.txt",modules=[jetRecalib2017F(),mhtVHbb(),vhbb2017_data()],provenance=True,fwkJobReport=True,jsonInput=runsAndLumis())
+        else:
+            p=PostProcessor(".",inputFiles(),selection.replace('\n',' '),"keep_and_drop.txt",modules=[mhtVHbb(),vhbb2017_data()],provenance=True,fwkJobReport=True,jsonInput=runsAndLumis())
 p.run()
 
 print "DONE"

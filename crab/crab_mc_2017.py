@@ -52,6 +52,6 @@ if __name__ == '__main__':
 	#config.Data.unitsPerJob = 2000000
 	n+=1
 	nnn="%s"%n
-        config.General.requestName = "VHbbPostNano2017_V3TEST3_May2_"+dataset.split('/')[1][:30]+dataset.split('/')[2][:30]+nnn
+        config.General.requestName = "VHbbPostNano2017_V3_May2_"+dataset.split('/')[1][:30]+dataset.split('/')[2][:30]+nnn
         config.Data.outputDatasetTag = dataset.split('/')[2][:30]+nnn
         crabCommand('submit', config = config)
