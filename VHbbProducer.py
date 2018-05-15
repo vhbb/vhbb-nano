@@ -110,6 +110,15 @@ class VHbbProducer(Module):
             print "tried to call btag() for unknown era: %s, quitting..." % self.era
             sys.exit(1)
 
+    def elid(self, el, wp):
+        if (self.era == "2016" and wp == "80"):
+            return el.mvaSpring16GP_WP80
+        elif (self.era == "2016" and wp == "90"):
+            return el.mvaSpring16GP_WP90
+        elif (self.era == "2017" and wp == "80"):
+            return el.mvaFall17Iso_WP80
+        elif (self.era == "2017" and wp == "90"):
+            return el.mvaFall17Iso_WP90
     def statusFlags_dict(self, bit):
 
         Dict={0 : "isPrompt", 1 : "isDecayedLeptonHadron", 2 : "isTauDecayProduct", 3 : "isPromptTauDecayProduct", 4 : "isDirectTauDecayProduct", 5 : "isDirectPromptTauDecayProduct", 6 : "isDirectHadronDecayProduct", 7 : "isHardProcess", 8 : "fromHardProcess", 9 : "isHardProcessTauDecayProduct", 10 : "isDirectHardProcessTauDecayProduct", 11 : "fromHardProcessBeforeFSR", 12 : "isFirstCopy", 13 : "isLastCopy", 14 : "isLastCopyBeforeFSR" }
@@ -133,9 +142,9 @@ class VHbbProducer(Module):
       
         Vtype = -1
 
-        wElectrons = [x for x in electrons if x.mvaSpring16GP_WP80 and x.pt > 25 and x.pfRelIso03_all < 0.12]      
+        wElectrons = [x for x in electrons if self.elid(x,"80") and x.pt > 25 and x.pfRelIso03_all < 0.12]      
         wMuons = [x for x in muons if x.pt > 25 and x.tightId >= 1 and x.pfRelIso04_all < 0.15 and x.dxy < 0.05 and x.dz < 0.2]
-        zElectrons = [x for x in electrons if x.pt > 20 and x.mvaSpring16GP_WP90 and x.pfRelIso03_all < 0.15]
+        zElectrons = [x for x in electrons if x.pt > 20 and self.elid(x,"90") and x.pfRelIso03_all < 0.15]
         zMuons = [x for x in muons if x.pt > 20 and x.pfRelIso04_all < 0.25 and x.dxy < 0.05 and x.dz < 0.2] # muons already preselected with looseId requirement
 
         zMuons.sort(key=lambda x:x.pt,reverse=True)
