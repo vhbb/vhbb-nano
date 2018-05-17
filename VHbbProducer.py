@@ -43,6 +43,7 @@ class VHbbProducer(Module):
         self.out.branch("SA_Ht",  "F");
         self.out.branch("SA5",  "F");
         self.out.branch("Jet_Pt", "F", 1, "nJet");
+        self.out.branch("Jet_PtReg", "F", 1, "nJet");
         self.out.branch("MET_Pt","F");
         self.out.branch("MET_Phi","F");
 
@@ -245,10 +246,13 @@ class VHbbProducer(Module):
         ## alias JER-smeared MC jet pT and data jet pT to the same
         ## branch name
         jetPts = [-99.]*len(jets)
+        jetPtRegs = [-99.]*len(jets)
         for i in xrange(len(jets)):
-            jetPts[i] = self.pt(jets[i],self.isMC)
+            jetPts[i] = self.pt(jets[i],self.isMC, True)
+            jetPtRegs[i] = self.pt(jets[i],self.isMC)
 
         self.out.fillBranch("Jet_Pt",jetPts)
+        self.out.fillBranch("Jet_PtReg",jetPtRegs)
 
         fatjetPts = [-99.]*len(fatjets)
         for i in xrange(len(fatjets)):
@@ -322,15 +326,6 @@ class VHbbProducer(Module):
             #matchedSAJets=self.matchSoftActivityFSR(hJets[0],hJets[1],sa)
             # update SA variables 
 
-            print "available soft activity jet collection"
-            for sajet in sa:
-                print "pt =",sajet.pt,"eta = ",sajet.eta
-            print "these jets were removed from the count"
-            for sajet in matchedSAJets:
-                print "pt =",sajet.pt,"eta = ",sajet.eta
-            print "in Nano the number of SA5 jets is event.SoftActivityJetNjets5 = ",event.SoftActivityJetNjets5
-            print "after removing the matched jets SA5 is ",(event.SoftActivityJetNjets5-len(matchedSAJetsPt5))
-
 
             softActivityJetHT=event.SoftActivityJetHT2-sum([x.pt for x in matchedSAJets])
             self.out.fillBranch("SA_Ht",softActivityJetHT)
@@ -338,6 +333,16 @@ class VHbbProducer(Module):
             matchedSAJetsPt5=[x for x in matchedSAJets if x.pt>5]
             softActivityJetNjets5=event.SoftActivityJetNjets5-len(matchedSAJetsPt5)
             self.out.fillBranch("SA5",softActivityJetNjets5)
+            
+            if (event.SoftActivityJetNjets5-len(matchedSAJetsPt5)) < 0:
+                print "available soft activity jet collection"
+                for sajet in sa:
+                    print "pt =",sajet.pt,"eta = ",sajet.eta
+                print "these jets were removed from the count"
+                for sajet in matchedSAJetsPt5:
+                    print "pt =",sajet.pt,"eta = ",sajet.eta
+                print "in Nano the number of SA5 jets is event.SoftActivityJetNjets5 = ",event.SoftActivityJetNjets5
+                print "after removing the matched jets SA5 is ",(event.SoftActivityJetNjets5-len(matchedSAJetsPt5))
         
         else:
             self.out.fillBranch("hJidx",[-1,-1])
