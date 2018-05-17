@@ -98,7 +98,13 @@ class VHbbProducer(Module):
                 return jet.pt		 
         else:
             if isMC:
-                return jet.bReg*jet.pt_nom
+                # until we have final post-regression smearing factors we assume a flat 10%
+                smearedPt = jet.pt
+                if jet.Jet_genJetIdx >=0 and  jet.Jet_genJetIdx < len(genJets) :
+                    genJet=genJets[jet.Jet_genJetIdx]
+                    dPt = jet.pt - genJet.pt
+                    smearedPt=jet.pt+1.1*dPt
+                return jet.bReg*smearedPt
             else:
                 return jet.bReg*jet.pt    
     
@@ -149,6 +155,7 @@ class VHbbProducer(Module):
         subjets = Collection(event, "SubJet")
         if self.isMC:
             genParticles = Collection(event, "GenPart")
+            genJets = Collection(event, "GenJet")
 
         metPt,metPhi = self.met(met,self.isMC)
         self.out.fillBranch("MET_Pt",metPt)
@@ -202,7 +209,7 @@ class VHbbProducer(Module):
             V = V + vLepton_4vec
         if Vtype >=2 and Vtype<=4:
             met_4vec = ROOT.TLorentzVector()
-            met_4vec.SetPtEtaPhiM(met.pt,0.,met.phi,0.) # only use met vector to derive transverse quantities
+            met_4vec.SetPtEtaPhiM(metPt,0.,metPhi,0.) # only use met vector to derive transverse quantities
             V = V + met_4vec
         self.out.fillBranch("V_pt",V.Pt())
         self.out.fillBranch("V_eta",V.Eta())
