@@ -7,9 +7,10 @@ from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 from PhysicsTools.NanoAODTools.postprocessing.tools import * #deltaR, matching etc..
 
 class VHbbProducer(Module):
-    def __init__(self, isMC, era):
+    def __init__(self, isMC, era, useCMVA=False):
         self.era = era
         self.isMC = isMC
+        self.useCMVA = useCMVA
         pass
     def beginJob(self):
         pass
@@ -75,14 +76,31 @@ class VHbbProducer(Module):
 	        if deltaR(saj,j) < dR :
                     matched.add(saj)
 	return matched
+    
+    def matchSoftActivityFSR(self,jet1,jet2,saJets,dR=0.4) :
+	matched=set()
+        drjj = deltaR(jet1,jet2)
+        sumDeltaRMin = drjj + 2*dR
+	for saj in saJets:
+            dr1 = deltaR(saj,jet1)
+            dr2 = deltaR(saj,jet2)
+            if ((dr1+dr2) < sumDeltaRMin):
+                matched.add(saj)
+	return matched
 			
-    def pt(self, jet, isMC):
+    def pt(self, jet, isMC, noReg=False):
         ## the MC has JER smearing applied which has output branch Jet_pt_nom which should be compared 
         ## with data branch Jet_pt. This essentially aliases the two branches to one common jet pt variable.
-        if isMC:
-            return jet.pt_nom
+        if noReg:
+            if isMC:
+                return jet.pt_nom
+            else:
+                return jet.pt		 
         else:
-            return jet.pt		    
+            if isMC:
+                return jet.bReg*jet.pt_nom
+            else:
+                return jet.bReg*jet.pt    
     
     def met(self, met, isMC):
         ## the MC has JER smearing applied which has output branch met_[pt/phi]_nom which should be compared 
@@ -101,14 +119,10 @@ class VHbbProducer(Module):
             return jet.msoftdrop
  
     def btag(self, jet):
-        ## make the btagging discriminator used a function of era. CMVA for 2016 and deepCSV for 2017
-        if (self.era == "2016"):
+        if (self.useCMVA):
             return jet.btagCMVA
-	elif (self.era == "2017"):
+	else:
             return jet.btagDeepB
-        else:
-            print "tried to call btag() for unknown era: %s, quitting..." % self.era
-            sys.exit(1)
 
     def elid(self, el, wp):
         if (self.era == "2016" and wp == "80"):
@@ -240,17 +254,17 @@ class VHbbProducer(Module):
         self.out.fillBranch("FatJet_Msoftdrop",fatjetMSD)
 
         ## Add explicit indices for selected H(bb) candidate jets
-        jetsForHiggs = [x for x in jets if x.lepFilter and x.puId>0 and x.jetId>0 and x.Pt>20 and abs(x.eta)<2.5]
+        jetsForHiggs = [x for x in jets if x.lepFilter and x.puId>0 and x.jetId>0 and self.pt(x)>20 and abs(x.eta)<2.5]
         if (len(jetsForHiggs) >= 2): 
-            hJets = sorted(jetsForHiggs, key = lambda jet : jet.btagCMVA, reverse=True)[0:2]
+            hJets = sorted(jetsForHiggs, key = lambda jet : self.btag(jet), reverse=True)[0:2]
             hJidx = [jets.index(x) for x in hJets]
             self.out.fillBranch("hJidx",hJidx)
 
             ## Save a few basic reco. H kinematics
             hj1 = ROOT.TLorentzVector()
             hj2 = ROOT.TLorentzVector()
-            hj1.SetPtEtaPhiM(jets[hJidx[0]].Pt,jets[hJidx[0]].eta,jets[hJidx[0]].phi,jets[hJidx[0]].mass)
-            hj2.SetPtEtaPhiM(jets[hJidx[1]].Pt,jets[hJidx[1]].eta,jets[hJidx[1]].phi,jets[hJidx[1]].mass)
+            hj1.SetPtEtaPhiM(self.pt(jets[hJidx[0]]),jets[hJidx[0]].eta,jets[hJidx[0]].phi,jets[hJidx[0]].mass)
+            hj2.SetPtEtaPhiM(self.pt(jets[hJidx[1]]),jets[hJidx[1]].eta,jets[hJidx[1]].phi,jets[hJidx[1]].mass)
             hbb = hj1 + hj2
             self.out.fillBranch("H_pt",hbb.Pt())
             self.out.fillBranch("H_phi",hbb.Phi())
@@ -266,8 +280,8 @@ class VHbbProducer(Module):
             ## Save a few basic reco. H kinematics (from CMVA)
             hj1cmva = ROOT.TLorentzVector()
             hj2cmva = ROOT.TLorentzVector()
-            hj1cmva.SetPtEtaPhiM(jets[hJidxCMVA[0]].Pt,jets[hJidxCMVA[0]].eta,jets[hJidxCMVA[0]].phi,jets[hJidxCMVA[0]].mass)
-            hj2cmva.SetPtEtaPhiM(jets[hJidxCMVA[1]].Pt,jets[hJidxCMVA[1]].eta,jets[hJidxCMVA[1]].phi,jets[hJidxCMVA[1]].mass)
+            hj1cmva.SetPtEtaPhiM(self.pt(jets[hJidxCMVA[0]]),jets[hJidxCMVA[0]].eta,jets[hJidxCMVA[0]].phi,jets[hJidxCMVA[0]].mass)
+            hj2cmva.SetPtEtaPhiM(self.pt(jets[hJidxCMVA[1]]),jets[hJidxCMVA[1]].eta,jets[hJidxCMVA[1]].phi,jets[hJidxCMVA[1]].mass)
             hbbcmva = hj1cmva + hj2cmva
             self.out.fillBranch("HCMVA_pt",hbbcmva.Pt())
             self.out.fillBranch("HCMVA_phi",hbbcmva.Phi())
@@ -279,7 +293,7 @@ class VHbbProducer(Module):
             for ijet in xrange(len(jets)):
                 if ijet == hJidx[0] or ijet == hJidx[1]: continue
                 jet = jets[ijet]
-                if jet.Pt>20 and abs(jet.eta)<3.0 and jet.puId>0 and jet.jetId>0 and jet.lepFilter:
+                if self.pt(jet,noReg=True)>20 and abs(jet.eta)<3.0 and jet.puId>0 and jet.jetId>0 and jet.lepFilter:
                    if min(deltaR(jet,jets[hJidx[0]]),deltaR(jet,jets[hJidx[1]])) < 0.8:
                        jetsFromFSR.append(jet)
             HFSR = hbb
@@ -297,14 +311,18 @@ class VHbbProducer(Module):
             ## Compute soft activity vetoing Higgs jets
             #find signal footprint
             matchedSAJets=self.matchSoftActivity(hJets,sa)
+            FSRSAJets=self.matchSoftActivityFSR(hJets[0],hJets[1],sa)
             # update SA variables 
 
 
             softActivityJetHT=event.SoftActivityJetHT2-sum([x.pt for x in matchedSAJets])
+            softActivityJetHT=softActivityJetHT-sum([x.pt for x in FSRSAJets])
             self.out.fillBranch("SA_Ht",softActivityJetHT)
 
             matchedSAJetsPt5=[x for x in matchedSAJets if x.pt>5]
+            FSRSAJetsPt5=[x for x in FSRSAJets if x.pt>5]
             softActivityJetNjets5=event.SoftActivityJetNjets5-len(matchedSAJetsPt5)
+            softActivityJetNjets5=softActivityJetNjets5-len(FSRSAJetsPt5)
             self.out.fillBranch("SA5",softActivityJetNjets5)
         
         else:
