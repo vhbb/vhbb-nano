@@ -26,6 +26,7 @@ class VHbbProducer(Module):
         self.out.branch("V_mass",  "F");
         self.out.branch("V_mt",  "F");
         self.out.branch("Jet_lepFilter",  "O", 1, "nJet");
+        self.out.branch("vLidx",  "I", 2);
         self.out.branch("hJidx",  "I", 2);
         self.out.branch("hJidxCMVA",  "I", 2);
         self.out.branch("H_pt",  "F");
@@ -148,8 +149,8 @@ class VHbbProducer(Module):
 
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
-        electrons = Collection(event, "Electron")
-        muons = Collection(event, "Muon")
+        electrons = list(Collection(event, "Electron"))
+        muons = list(Collection(event, "Muon"))
         jets = list(Collection(event, "Jet"))
         met = Object(event, "MET")
         sa = Collection(event, "SoftActivityJet")
@@ -174,12 +175,15 @@ class VHbbProducer(Module):
         zElectrons.sort(key=lambda x:x.pt,reverse=True)
 
         vLeptons = [] # decay products of V
+        vLidx = [-1,-1] # indices in lepton collection of selected leptons
         if len(zMuons) >= 2:
             if zMuons[0].pt > 20:
                 for i in xrange(1,len(zMuons)):
                     if zMuons[0].charge * zMuons[i].charge < 0:
                         Vtype = 0
                         vLeptons = [zMuons[0],zMuons[i]]
+                        vLidx[0] = muons.index(zMuons[0])
+                        vLidx[1] = muons.index(zMuons[1])
                         break
         elif len(zElectrons) >= 2:
             if zElectrons[0].pt > 20:
@@ -187,14 +191,18 @@ class VHbbProducer(Module):
                     if zElectrons[0].charge * zElectrons[i].charge < 0:
                         Vtype = 1
                         vLeptons = [zElectrons[0],zElectrons[i]]
+                        vLidx[0] = electrons.index(zElectrons[0])
+                        vLidx[1] = electrons.index(zElectrons[1])
                         break
         elif len(wElectrons) + len(wMuons) == 1:
             if len(wMuons) == 1:
                 Vtype = 2
                 vLeptons = [wMuons[0]]
+                vLidx[0] = muons.index(wMuons[0])
             if len(wElectrons) == 1:
                 Vtype=3
                 vLeptons = [wElectrons[0]]
+                vLidx[0] = electrons.index(wElectrons[0])
         elif len(zElectrons) + len(zMuons) > 0:
             Vtype = 5
         else:
@@ -202,6 +210,7 @@ class VHbbProducer(Module):
             if metPt < 150:
                 Vtype = -1
         self.out.fillBranch("Vtype",Vtype)
+        self.out.fillBranch("vLidx",vLidx)
 
         ## add branches for some basic V kinematics
         V = ROOT.TLorentzVector()
@@ -322,7 +331,8 @@ class VHbbProducer(Module):
 
             ## Compute soft activity vetoing Higgs jets
             #find signal footprint
-            matchedSAJets=self.matchSoftActivity(hJets,sa)
+            toVeto = hJets + vLeptons
+            matchedSAJets=self.matchSoftActivity(toVeto,sa)
             #matchedSAJets=self.matchSoftActivityFSR(hJets[0],hJets[1],sa)
             # update SA variables 
             # since nSA5Jet counter from Nano is bugged we count ourselves (limited to 6)
@@ -333,8 +343,8 @@ class VHbbProducer(Module):
                 if saJet.pt > 5: 
                     softActivityJetNjets5 = softActivityJetNjets5 + 1
 
-            softActivityJetHT=softActivityJetHT-sum([x.pt for x in matchedSAJets])
-            #softActivityJetHT=event.SoftActivityJetHT2-sum([x.pt for x in matchedSAJets])
+            #softActivityJetHT=softActivityJetHT-sum([x.pt for x in matchedSAJets])
+            softActivityJetHT=event.SoftActivityJetHT-sum([x.pt for x in matchedSAJets])
             self.out.fillBranch("SA_Ht",softActivityJetHT)
 
             matchedSAJetsPt5=[x for x in matchedSAJets if x.pt>5]
@@ -375,25 +385,31 @@ class VHbbProducer(Module):
             self.out.fillBranch("Hbb_fjidx",hbb_idx)
 
             ## SA leading pt
-            matchedSAJets=self.matchSoftActivity([fatjets[pt_idx]],sa,0.8)
+            toVeto = [fatjets[pt_idx]]
+            toVeto.extend(vLeptons)
+            matchedSAJets=self.matchSoftActivity(toVeto,sa,0.8)
             matchedSAJetsPt5=[x for x in matchedSAJets if x.pt>5]
-            softActivityJetHT=event.SoftActivityJetHT2-sum([x.pt for x in matchedSAJets])
+            softActivityJetHT=event.SoftActivityJetHT-sum([x.pt for x in matchedSAJets])
             self.out.fillBranch("SAptfj_HT",softActivityJetHT)
             softActivityJetNjets5=event.SoftActivityJetNjets5-len(matchedSAJetsPt5)
             self.out.fillBranch("SAptfj5",softActivityJetNjets5)
 
             ## SA leading mass
-            matchedSAJets=self.matchSoftActivity([fatjets[msd_idx]],sa,0.8)
+            toVeto = [fatjets[msd_idx]]
+            toVeto.extend(vLeptons)
+            matchedSAJets=self.matchSoftActivity(toVeto,sa,0.8)
             matchedSAJetsPt5=[x for x in matchedSAJets if x.pt>5]
-            softActivityJetHT=event.SoftActivityJetHT2-sum([x.pt for x in matchedSAJets])
+            softActivityJetHT=event.SoftActivityJetHT-sum([x.pt for x in matchedSAJets])
             self.out.fillBranch("SAmfj_HT",softActivityJetHT)
             softActivityJetNjets5=event.SoftActivityJetNjets5-len(matchedSAJetsPt5)
             self.out.fillBranch("SAmfj5",softActivityJetNjets5)
 
             ## SA leading mass
-            matchedSAJets=self.matchSoftActivity([fatjets[hbb_idx]],sa,0.8)
+            toVeto = [fatjets[hbb_idx]]
+            toVeto.extend(vLeptons)
+            matchedSAJets=self.matchSoftActivity(toVeto,sa,0.8)
             matchedSAJetsPt5=[x for x in matchedSAJets if x.pt>5]
-            softActivityJetHT=event.SoftActivityJetHT2-sum([x.pt for x in matchedSAJets])
+            softActivityJetHT=event.SoftActivityJetHT-sum([x.pt for x in matchedSAJets])
             self.out.fillBranch("SAhbbfj_HT",softActivityJetHT)
             softActivityJetNjets5=event.SoftActivityJetNjets5-len(matchedSAJetsPt5)
             self.out.fillBranch("SAhbbfj5",softActivityJetNjets5)

@@ -2,9 +2,9 @@ import sys
 from CRABClient.UserUtilities import config, getUsernameFromSiteDB
 config = config()
 
-config.General.requestName = 'VHbbPostNano2016_V3'
+config.General.requestName = 'VHbbPostNano2016_V4'
 #config.General.workArea = 'crab_projects'
-config.General.workArea = '/afs/cern.ch/work/s/scoopers/private/crabspace/crab_projects/2016/V3/'
+config.General.workArea = '/afs/cern.ch/work/s/scoopers/private/crabspace/crab_projects/2016/V4/'
 config.General.transferOutputs = True
 config.General.transferLogs = True
 
@@ -16,15 +16,16 @@ config.JobType.inputFiles = ['../keep_and_drop.txt','../postproc.py','../../../.
 config.JobType.sendPythonFolder	 = True
 
 config.Data.inputDataset = '/TT_TuneCUETP8M2T4_13TeV-powheg-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM'
-config.Data.inputDBS = 'global'
+config.Data.inputDBS = 'phys03'
+#config.Data.inputDBS = 'global'
 config.Data.splitting = 'FileBased'
 config.Data.unitsPerJob = 1
 #config.Data.splitting = 'EventAwareLumiBased'
 #config.Data.outLFNDirBase = '/store/user/%s/VHbbPostNano2016_V1_mcRerun/' % (getUsernameFromSiteDB())
-config.Data.outLFNDirBase = '/store/group/phys_higgs/hbb/ntuples/VHbbPostNano/2016/V3/'
+config.Data.outLFNDirBase = '/store/group/phys_higgs/hbb/ntuples/VHbbPostNano/2016/V4/'
 config.Data.publication = True
 #config.Data.outputDatasetTag = 'RunIISummer17MiniAOD-92X-NanoCrabProd006'
-config.Data.outputDatasetTag = 'RunIISummer16MiniAODv2-PUMoriond17-80X-VHbbPostNano2016_V3'
+config.Data.outputDatasetTag = 'RunIISummer16MiniAODv2-PUMoriond17-80X-VHbbPostNano2016_V4'
 config.Data.allowNonValidInputDataset = True
 config.Site.storageSite = 'T2_CH_CERN'
 
@@ -49,6 +50,6 @@ if __name__ == '__main__':
 	#config.Data.unitsPerJob = 2000000
 	n+=1
 	nnn="%s"%n
-        config.General.requestName = "VHbbPostNano2016_V3_May4_"+dataset.split('/')[1][:30]+dataset.split('/')[2][:30]+nnn
+        config.General.requestName = "VHbbPostNano2016_V4TEST3_May17_"+dataset.split('/')[1][:30]+dataset.split('/')[2][:30]+nnn
         config.Data.outputDatasetTag = dataset.split('/')[2][:30]+nnn
         crabCommand('submit', config = config)
