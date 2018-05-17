@@ -11,6 +11,7 @@ class VHbbProducer(Module):
         self.era = era
         self.isMC = isMC
         self.useCMVA = useCMVA
+        self.genJets = []
         pass
     def beginJob(self):
         pass
@@ -100,10 +101,10 @@ class VHbbProducer(Module):
             if isMC:
                 # until we have final post-regression smearing factors we assume a flat 10%
                 smearedPt = jet.pt
-                if jet.Jet_genJetIdx >=0 and  jet.Jet_genJetIdx < len(genJets) :
-                    genJet=genJets[jet.Jet_genJetIdx]
+                if jet.genJetIdx >=0 and  jet.genJetIdx < len(self.genJets) :
+                    genJet=self.genJets[jet.genJetIdx]
                     dPt = jet.pt - genJet.pt
-                    smearedPt=jet.pt+1.1*dPt
+                    smearedPt=genJet.pt+1.1*dPt
                 return jet.bReg*smearedPt
             else:
                 return jet.bReg*jet.pt    
@@ -155,7 +156,7 @@ class VHbbProducer(Module):
         subjets = Collection(event, "SubJet")
         if self.isMC:
             genParticles = Collection(event, "GenPart")
-            genJets = Collection(event, "GenJet")
+            self.genJets = Collection(event, "GenJet")
 
         metPt,metPhi = self.met(met,self.isMC)
         self.out.fillBranch("MET_Pt",metPt)
@@ -251,7 +252,7 @@ class VHbbProducer(Module):
 
         fatjetPts = [-99.]*len(fatjets)
         for i in xrange(len(fatjets)):
-            fatjetPts[i] = self.pt(fatjets[i],self.isMC)
+            fatjetPts[i] = self.pt(fatjets[i],self.isMC,True)
 
         fatjetMSD = [-99.]*len(fatjets)
         for i in xrange(len(fatjets)):
@@ -261,7 +262,7 @@ class VHbbProducer(Module):
         self.out.fillBranch("FatJet_Msoftdrop",fatjetMSD)
 
         ## Add explicit indices for selected H(bb) candidate jets
-        jetsForHiggs = [x for x in jets if x.lepFilter and x.puId>0 and x.jetId>0 and self.pt(x)>20 and abs(x.eta)<2.5]
+        jetsForHiggs = [x for x in jets if x.lepFilter and x.puId>0 and x.jetId>0 and self.pt(x,self.isMC)>20 and abs(x.eta)<2.5]
         if (len(jetsForHiggs) >= 2): 
             hJets = sorted(jetsForHiggs, key = lambda jet : self.btag(jet), reverse=True)[0:2]
             hJidx = [jets.index(x) for x in hJets]
@@ -270,8 +271,8 @@ class VHbbProducer(Module):
             ## Save a few basic reco. H kinematics
             hj1 = ROOT.TLorentzVector()
             hj2 = ROOT.TLorentzVector()
-            hj1.SetPtEtaPhiM(self.pt(jets[hJidx[0]]),jets[hJidx[0]].eta,jets[hJidx[0]].phi,jets[hJidx[0]].mass)
-            hj2.SetPtEtaPhiM(self.pt(jets[hJidx[1]]),jets[hJidx[1]].eta,jets[hJidx[1]].phi,jets[hJidx[1]].mass)
+            hj1.SetPtEtaPhiM(self.pt(jets[hJidx[0]],self.isMC),jets[hJidx[0]].eta,jets[hJidx[0]].phi,jets[hJidx[0]].mass)
+            hj2.SetPtEtaPhiM(self.pt(jets[hJidx[1]],self.isMC),jets[hJidx[1]].eta,jets[hJidx[1]].phi,jets[hJidx[1]].mass)
             hbb = hj1 + hj2
             self.out.fillBranch("H_pt",hbb.Pt())
             self.out.fillBranch("H_phi",hbb.Phi())
@@ -287,8 +288,8 @@ class VHbbProducer(Module):
             ## Save a few basic reco. H kinematics (from CMVA)
             hj1cmva = ROOT.TLorentzVector()
             hj2cmva = ROOT.TLorentzVector()
-            hj1cmva.SetPtEtaPhiM(self.pt(jets[hJidxCMVA[0]]),jets[hJidxCMVA[0]].eta,jets[hJidxCMVA[0]].phi,jets[hJidxCMVA[0]].mass)
-            hj2cmva.SetPtEtaPhiM(self.pt(jets[hJidxCMVA[1]]),jets[hJidxCMVA[1]].eta,jets[hJidxCMVA[1]].phi,jets[hJidxCMVA[1]].mass)
+            hj1cmva.SetPtEtaPhiM(self.pt(jets[hJidxCMVA[0]],self.isMC),jets[hJidxCMVA[0]].eta,jets[hJidxCMVA[0]].phi,jets[hJidxCMVA[0]].mass)
+            hj2cmva.SetPtEtaPhiM(self.pt(jets[hJidxCMVA[1]],self.isMC),jets[hJidxCMVA[1]].eta,jets[hJidxCMVA[1]].phi,jets[hJidxCMVA[1]].mass)
             hbbcmva = hj1cmva + hj2cmva
             self.out.fillBranch("HCMVA_pt",hbbcmva.Pt())
             self.out.fillBranch("HCMVA_phi",hbbcmva.Phi())
@@ -300,7 +301,7 @@ class VHbbProducer(Module):
             for ijet in xrange(len(jets)):
                 if ijet == hJidx[0] or ijet == hJidx[1]: continue
                 jet = jets[ijet]
-                if self.pt(jet,noReg=True)>20 and abs(jet.eta)<3.0 and jet.puId>0 and jet.jetId>0 and jet.lepFilter:
+                if self.pt(jet,self.isMC,noReg=True)>20 and abs(jet.eta)<3.0 and jet.puId>0 and jet.jetId>0 and jet.lepFilter:
                    if min(deltaR(jet,jets[hJidx[0]]),deltaR(jet,jets[hJidx[1]])) < 0.8:
                        jetsFromFSR.append(jet)
             HFSR = hbb
@@ -318,18 +319,24 @@ class VHbbProducer(Module):
             ## Compute soft activity vetoing Higgs jets
             #find signal footprint
             matchedSAJets=self.matchSoftActivity(hJets,sa)
-            FSRSAJets=self.matchSoftActivityFSR(hJets[0],hJets[1],sa)
+            #matchedSAJets=self.matchSoftActivityFSR(hJets[0],hJets[1],sa)
             # update SA variables 
+
+            print "available soft activity jet collection"
+            for sajet in sa:
+                print "pt =",sajet.pt,"eta = ",sajet.eta
+            print "these jets were removed from the count"
+            for sajet in matchedSAJets:
+                print "pt =",sajet.pt,"eta = ",sajet.eta
+            print "in Nano the number of SA5 jets is event.SoftActivityJetNjets5 = ",event.SoftActivityJetNjets5
+            print "after removing the matched jets SA5 is ",(event.SoftActivityJetNjets5-len(matchedSAJetsPt5))
 
 
             softActivityJetHT=event.SoftActivityJetHT2-sum([x.pt for x in matchedSAJets])
-            softActivityJetHT=softActivityJetHT-sum([x.pt for x in FSRSAJets])
             self.out.fillBranch("SA_Ht",softActivityJetHT)
 
             matchedSAJetsPt5=[x for x in matchedSAJets if x.pt>5]
-            FSRSAJetsPt5=[x for x in FSRSAJets if x.pt>5]
             softActivityJetNjets5=event.SoftActivityJetNjets5-len(matchedSAJetsPt5)
-            softActivityJetNjets5=softActivityJetNjets5-len(FSRSAJetsPt5)
             self.out.fillBranch("SA5",softActivityJetNjets5)
         
         else:
