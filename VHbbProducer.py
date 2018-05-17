@@ -325,25 +325,23 @@ class VHbbProducer(Module):
             matchedSAJets=self.matchSoftActivity(hJets,sa)
             #matchedSAJets=self.matchSoftActivityFSR(hJets[0],hJets[1],sa)
             # update SA variables 
+            # since nSA5Jet counter from Nano is bugged we count ourselves (limited to 6)
+            softActivityJetNjets5 = 0
+            softActivityJetHT = 0. 
+            for saJet in sa:
+                softActivityJetHT = softActivityJetHT + saJet.pt
+                if saJet.pt > 5: 
+                    softActivityJetNjets5 = softActivityJetNjets5 + 1
 
-
-            softActivityJetHT=event.SoftActivityJetHT2-sum([x.pt for x in matchedSAJets])
+            softActivityJetHT=softActivityJetHT-sum([x.pt for x in matchedSAJets])
+            #softActivityJetHT=event.SoftActivityJetHT2-sum([x.pt for x in matchedSAJets])
             self.out.fillBranch("SA_Ht",softActivityJetHT)
 
             matchedSAJetsPt5=[x for x in matchedSAJets if x.pt>5]
-            softActivityJetNjets5=event.SoftActivityJetNjets5-len(matchedSAJetsPt5)
+            softActivityJetNjets5=softActivityJetNjets5-len(matchedSAJetsPt5)
+            #softActivityJetNjets5=event.SoftActivityJetNjets5-len(matchedSAJetsPt5)
             self.out.fillBranch("SA5",softActivityJetNjets5)
             
-            if (event.SoftActivityJetNjets5-len(matchedSAJetsPt5)) < 0:
-                print "available soft activity jet collection"
-                for sajet in sa:
-                    print "pt =",sajet.pt,"eta = ",sajet.eta
-                print "these jets were removed from the count"
-                for sajet in matchedSAJetsPt5:
-                    print "pt =",sajet.pt,"eta = ",sajet.eta
-                print "in Nano the number of SA5 jets is event.SoftActivityJetNjets5 = ",event.SoftActivityJetNjets5
-                print "after removing the matched jets SA5 is ",(event.SoftActivityJetNjets5-len(matchedSAJetsPt5))
-        
         else:
             self.out.fillBranch("hJidx",[-1,-1])
             self.out.fillBranch("H_pt",-1)
