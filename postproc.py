@@ -104,20 +104,20 @@ if isMC:
         p=PostProcessor(".",inputFiles(),selection.replace('\n',' '),"keep_and_drop.txt",[puAutoWeight(),jetmetUncertainties2017All(),jetmetUncertainties2017AK8PuppiAll(),muonScaleRes2017(),mhtVHbb(),btagSFProducer("2017","deepcsv"),vhbb2017()],provenance=True,fwkJobReport=True,jsonInput=runsAndLumis())
 else:
     if era == "2016":
-        p=PostProcessor(".",inputFiles(),selection.replace('\n',' '),"keep_and_drop.txt",modules=[mhtVHbb(),vhbb2016_data()],provenance=True,fwkJobReport=True,jsonInput=runsAndLumis())
+        p=PostProcessor(".",inputFiles(),selection.replace('\n',' '),"keep_and_drop.txt",modules=[muonScaleRes2016(),mhtVHbb(),vhbb2016_data()],provenance=True,fwkJobReport=True,jsonInput=runsAndLumis())
     elif era == "2017":
         if dataRun == "B":
-            p=PostProcessor(".",inputFiles(),selection.replace('\n',' '),"keep_and_drop.txt",modules=[jetRecalib2017B(),mhtVHbb(),vhbb2017_data()],provenance=True,fwkJobReport=True,jsonInput=runsAndLumis())
+            p=PostProcessor(".",inputFiles(),selection.replace('\n',' '),"keep_and_drop.txt",modules=[jetRecalib2017B(),muonScaleRes2017(),mhtVHbb(),vhbb2017_data()],provenance=True,fwkJobReport=True,jsonInput=runsAndLumis())
         if dataRun == "C":
-            p=PostProcessor(".",inputFiles(),selection.replace('\n',' '),"keep_and_drop.txt",modules=[jetRecalib2017C(),mhtVHbb(),vhbb2017_data()],provenance=True,fwkJobReport=True,jsonInput=runsAndLumis())
+            p=PostProcessor(".",inputFiles(),selection.replace('\n',' '),"keep_and_drop.txt",modules=[jetRecalib2017C(),muonScaleRes2017(),mhtVHbb(),vhbb2017_data()],provenance=True,fwkJobReport=True,jsonInput=runsAndLumis())
         if dataRun == "D":
-            p=PostProcessor(".",inputFiles(),selection.replace('\n',' '),"keep_and_drop.txt",modules=[jetRecalib2017D(),mhtVHbb(),vhbb2017_data()],provenance=True,fwkJobReport=True,jsonInput=runsAndLumis())
+            p=PostProcessor(".",inputFiles(),selection.replace('\n',' '),"keep_and_drop.txt",modules=[jetRecalib2017D(),muonScaleRes2017(),mhtVHbb(),vhbb2017_data()],provenance=True,fwkJobReport=True,jsonInput=runsAndLumis())
         if dataRun == "E":
-            p=PostProcessor(".",inputFiles(),selection.replace('\n',' '),"keep_and_drop.txt",modules=[jetRecalib2017E(),mhtVHbb(),vhbb2017_data()],provenance=True,fwkJobReport=True,jsonInput=runsAndLumis())
+            p=PostProcessor(".",inputFiles(),selection.replace('\n',' '),"keep_and_drop.txt",modules=[jetRecalib2017E(),muonScaleRes2017(),mhtVHbb(),vhbb2017_data()],provenance=True,fwkJobReport=True,jsonInput=runsAndLumis())
         if dataRun == "F":
-            p=PostProcessor(".",inputFiles(),selection.replace('\n',' '),"keep_and_drop.txt",modules=[jetRecalib2017F(),mhtVHbb(),vhbb2017_data()],provenance=True,fwkJobReport=True,jsonInput=runsAndLumis())
+            p=PostProcessor(".",inputFiles(),selection.replace('\n',' '),"keep_and_drop.txt",modules=[jetRecalib2017F(),muonScaleRes2017(),mhtVHbb(),vhbb2017_data()],provenance=True,fwkJobReport=True,jsonInput=runsAndLumis())
         else:
-            p=PostProcessor(".",inputFiles(),selection.replace('\n',' '),"keep_and_drop.txt",modules=[mhtVHbb(),vhbb2017_data()],provenance=True,fwkJobReport=True,jsonInput=runsAndLumis())
+            p=PostProcessor(".",inputFiles(),selection.replace('\n',' '),"keep_and_drop.txt",modules=[muonScaleRes2017(),mhtVHbb(),vhbb2017_data()],provenance=True,fwkJobReport=True,jsonInput=runsAndLumis())
 p.run()
 
 print "DONE"
