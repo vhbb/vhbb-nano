@@ -19,7 +19,7 @@ config.Data.inputDataset = '/TT_TuneCUETP8M2T4_13TeV-powheg-pythia8/RunIISummer1
 config.Data.inputDBS = 'phys03'
 #config.Data.inputDBS = 'global'
 config.Data.splitting = 'FileBased'
-config.Data.unitsPerJob = 1
+config.Data.unitsPerJob = 4
 #config.Data.splitting = 'EventAwareLumiBased'
 #config.Data.outLFNDirBase = '/store/user/%s/VHbbPostNano2016_V1_mcRerun/' % (getUsernameFromSiteDB())
 config.Data.outLFNDirBase = '/store/group/phys_higgs/hbb/ntuples/VHbbPostNano/2016/V4/'
@@ -50,6 +50,6 @@ if __name__ == '__main__':
 	#config.Data.unitsPerJob = 2000000
 	n+=1
 	nnn="%s"%n
-        config.General.requestName = "VHbbPostNano2016_V4TEST3_May17_"+dataset.split('/')[1][:30]+dataset.split('/')[2][:30]+nnn
+        config.General.requestName = "VHbbPostNano2016_V4_May17_"+dataset.split('/')[1][:30]+dataset.split('/')[2][:30]+nnn
         config.Data.outputDatasetTag = dataset.split('/')[2][:30]+nnn
         crabCommand('submit', config = config)
