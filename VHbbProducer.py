@@ -336,20 +336,17 @@ class VHbbProducer(Module):
             #matchedSAJets=self.matchSoftActivityFSR(hJets[0],hJets[1],sa)
             # update SA variables 
             # since nSA5Jet counter from Nano is bugged we count ourselves (limited to 6)
-            softActivityJetNjets5 = 0
-            softActivityJetHT = 0. 
-            for saJet in sa:
-                softActivityJetHT = softActivityJetHT + saJet.pt
-                if saJet.pt > 5: 
-                    softActivityJetNjets5 = softActivityJetNjets5 + 1
+            softActivityJetNjets5 = len([x for x in sa if x.pt>5])
 
-            #softActivityJetHT=softActivityJetHT-sum([x.pt for x in matchedSAJets])
             softActivityJetHT=event.SoftActivityJetHT-sum([x.pt for x in matchedSAJets])
             self.out.fillBranch("SA_Ht",softActivityJetHT)
 
             matchedSAJetsPt5=[x for x in matchedSAJets if x.pt>5]
-            softActivityJetNjets5=softActivityJetNjets5-len(matchedSAJetsPt5)
-            #softActivityJetNjets5=event.SoftActivityJetNjets5-len(matchedSAJetsPt5)
+            if (self.era == "2016"):
+                # initial SA counter in NanoAOD was bugged so have to count ourselves and accept that we start from 6
+                softActivityJetNjets5=softActivityJetNjets5-len(matchedSAJetsPt5)
+            else:
+                softActivityJetNjets5=event.SoftActivityJetNjets5-len(matchedSAJetsPt5)
             self.out.fillBranch("SA5",softActivityJetNjets5)
             
         else:
@@ -391,7 +388,10 @@ class VHbbProducer(Module):
             matchedSAJetsPt5=[x for x in matchedSAJets if x.pt>5]
             softActivityJetHT=event.SoftActivityJetHT-sum([x.pt for x in matchedSAJets])
             self.out.fillBranch("SAptfj_HT",softActivityJetHT)
-            softActivityJetNjets5=event.SoftActivityJetNjets5-len(matchedSAJetsPt5)
+            if (self.era == "2016"):
+                 softActivityJetNjets5=softActivityJetNjets5-len(matchedSAJetsPt5)
+            else:
+                 softActivityJetNjets5=event.SoftActivityJetNjets5-len(matchedSAJetsPt5)
             self.out.fillBranch("SAptfj5",softActivityJetNjets5)
 
             ## SA leading mass
@@ -401,7 +401,10 @@ class VHbbProducer(Module):
             matchedSAJetsPt5=[x for x in matchedSAJets if x.pt>5]
             softActivityJetHT=event.SoftActivityJetHT-sum([x.pt for x in matchedSAJets])
             self.out.fillBranch("SAmfj_HT",softActivityJetHT)
-            softActivityJetNjets5=event.SoftActivityJetNjets5-len(matchedSAJetsPt5)
+            if (self.era == "2016"):
+                softActivityJetNjets5=softActivityJetNjets5-len(matchedSAJetsPt5)
+            else:
+                softActivityJetNjets5=event.SoftActivityJetNjets5-len(matchedSAJetsPt5)
             self.out.fillBranch("SAmfj5",softActivityJetNjets5)
 
             ## SA leading mass
@@ -411,7 +414,10 @@ class VHbbProducer(Module):
             matchedSAJetsPt5=[x for x in matchedSAJets if x.pt>5]
             softActivityJetHT=event.SoftActivityJetHT-sum([x.pt for x in matchedSAJets])
             self.out.fillBranch("SAhbbfj_HT",softActivityJetHT)
-            softActivityJetNjets5=event.SoftActivityJetNjets5-len(matchedSAJetsPt5)
+            if (self.era == "2016"):
+                softActivityJetNjets5=softActivityJetNjets5-len(matchedSAJetsPt5)
+            else:
+                softActivityJetNjets5=event.SoftActivityJetNjets5-len(matchedSAJetsPt5)
             self.out.fillBranch("SAhbbfj5",softActivityJetNjets5)
 
         else:
