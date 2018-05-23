@@ -2,8 +2,8 @@ import sys
 from CRABClient.UserUtilities import config, getUsernameFromSiteDB
 config = config()
 
-config.General.requestName = 'VHbbPostNano2017_V2'
-config.General.workArea = '/afs/cern.ch/work/s/scoopers/private/crabspace/crab_projects/2017/V2/'
+config.General.requestName = 'VHbbPostNano2017_V3'
+config.General.workArea = '/afs/cern.ch/work/s/scoopers/private/crabspace/crab_projects/2017/V3/'
 #config.General.workArea = 'crab_projects'
 config.General.transferOutputs = True
 config.General.transferLogs = True
@@ -11,7 +11,7 @@ config.General.transferLogs = True
 config.JobType.pluginName = 'Analysis'
 config.JobType.psetName = 'PSet.py'
 config.JobType.scriptExe = 'crab_script.sh'
-config.JobType.scriptArgs = ['isMC=1','era=2017','dataRun=""']
+config.JobType.scriptArgs = ['isMC=0','era=2017','dataRun=X']
 config.JobType.inputFiles = ['../keep_and_drop.txt','../postproc.py','../../../../../../scripts/haddnano.py'] #hadd nano will not be needed once nano tools are in cmssw
 config.JobType.sendPythonFolder	 = True
 
@@ -20,9 +20,9 @@ config.Data.inputDBS = 'phys03'
 #config.Data.inputDBS = 'global'
 config.Data.splitting = 'EventAwareLumiBased'
 #config.Data.outLFNDirBase = '/store/user/%s/VHbbPostNano2017_V1/' % (getUsernameFromSiteDB())
-config.Data.outLFNDirBase = '/store/group/phys_higgs/hbb/ntuples/VHbbPostNano/2017/V2/'
+config.Data.outLFNDirBase = '/store/group/phys_higgs/hbb/ntuples/VHbbPostNano/2017/V3/'
 config.Data.publication = True
-config.Data.outputDatasetTag = 'RunIISummer17MiniAOD-92X-VHbbPostNano2017_V2'
+config.Data.outputDatasetTag = 'RunIISummer17MiniAOD-92X-VHbbPostNano2017_V3'
 #config.Data.outputDatasetTag = 'RunIISummer16MiniAODv2-PUMoriond17-80X-VHbbPostNano2016_V1'
 config.Data.allowNonValidInputDataset = True
 #config.Data.lumiMask = 'https://cms-service-dqm.web.cern.ch/cms-service-dqm/CAF/certification/Collisions16/13TeV/Cert_271036-284044_13TeV_PromptReco_Collisions16_JSON.txt'
@@ -48,8 +48,10 @@ if __name__ == '__main__':
 
         config.Data.inputDataset = dataset
 	config.Data.unitsPerJob = 2000000
+	#config.Data.unitsPerJob = 2000000
+        #config.Data.totalUnits =  2000000
 	n+=1
 	nnn="%s"%n
-        config.General.requestName = "VHbbPostNano2017_V2_"+dataset.split('/')[1][:30]+dataset.split('/')[2][:30]+nnn
+        config.General.requestName = "VHbbPostNano2017_V3_May4_"+dataset.split('/')[1][:30]+dataset.split('/')[2][:30]+nnn
         config.Data.outputDatasetTag = dataset.split('/')[2][:30]+nnn
         crabCommand('submit', config = config)
